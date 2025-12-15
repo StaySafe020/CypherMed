@@ -61,4 +61,53 @@ pub enum CypherMedError {
     
     #[msg("Invalid expiration time (must be in the future)")]
     InvalidExpirationTime,
+    
+    // New errors for Phase 1 features
+    #[msg("Cannot request access to yourself")]
+    CannotRequestAccessToSelf,
+    
+    #[msg("Reason is too long (max 200 characters)")]
+    ReasonTooLong,
+    
+    #[msg("Expiration time is too long (max 7 days from now)")]
+    ExpirationTooLong,
+    
+    #[msg("Access request has already been responded to")]
+    RequestAlreadyResponded,
+    
+    #[msg("Access request has expired")]
+    RequestExpired,
+    
+    #[msg("Update note is required")]
+    UpdateNoteRequired,
+    
+    #[msg("Update note is too long (max 500 characters)")]
+    UpdateNoteTooLong,
+    
+    #[msg("Data hash is too long (max 64 characters)")]
+    DataHashTooLong,
+    
+    #[msg("Metadata is too long (max 200 characters)")]
+    MetadataTooLong,
+    
+    #[msg("Deletion reason is required")]
+    DeletionReasonRequired,
+    
+    #[msg("Deletion reason is too long (max 300 characters)")]
+    DeletionReasonTooLong,
+    
+    #[msg("No providers specified for batch operation")]
+    NoProvidersSpecified,
+    
+    #[msg("Too many providers (max 10 per batch)")]
+    TooManyProviders,
+    
+    #[msg("Provider count and role count must match")]
+    ProviderRoleMismatch,
+    
+    #[msg("Invalid remaining accounts")]
+    InvalidRemainingAccounts,
+    
+    #[msg("Patient account is already active")]
+    PatientAlreadyActive,
 }
