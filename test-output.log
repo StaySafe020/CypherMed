@@ -1,0 +1,10 @@
+    Finished `release` profile [optimized] target(s) in 0.36s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.11s
+     Running unittests src/lib.rs (/home/jambongralpher/Desktop/CypherMed/target/debug/deps/cyphermed-e987936ddc81b465)
+Error: error sending request for url (http://127.0.0.1:8899/): error trying to connect: tcp connect error: Connection refused (os error 111)
+
+Caused by:
+    0: error sending request for url (http://127.0.0.1:8899/): error trying to connect: tcp connect error: Connection refused (os error 111)
+    1: error trying to connect: tcp connect error: Connection refused (os error 111)
+    2: tcp connect error: Connection refused (os error 111)
+    3: Connection refused (os error 111)

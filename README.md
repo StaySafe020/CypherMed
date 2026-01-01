@@ -324,22 +324,27 @@ get_audit_logs(
 
 ## 🗺️ Roadmap
 
-### Phase 1: Core Protocol (Current)
+### Phase 1: Core Protocol ✅ COMPLETE
 - ✅ Project initialization
-- 🔄 Smart contract development
-- 🔄 Basic access control
-- 🔄 Audit logging system
+- ✅ Smart contract development (Anchor/Rust)
+- ✅ Patient registration & management
+- ✅ Medical record CRUD (create/update/delete)
+- ✅ Access grant/revoke system
+- ✅ Access request workflow (request → approve/deny)
+- ✅ Batch access grants
+- ✅ Audit logging system (on-chain)
+- ✅ Comprehensive test suite (17 tests passing)
 
-### Phase 2: Enhanced Features
-- ⏳ Emergency access system
-- ⏳ Time-based permissions
+### Phase 2: Enhanced Features ✅ COMPLETE
+- ✅ Emergency access system (break-glass)
+- ✅ Time-based permissions (expiration support)
 - ⏳ Multi-signature for sensitive records
-- ⏳ Comprehensive testing
+- ✅ Comprehensive testing
 
-### Phase 3: Backend Integration
-- ⏳ PostgreSQL integration
+### Phase 3: Backend Integration (Current)
+- 🔄 PostgreSQL integration (schema done, migrations pending)
 - ⏳ Encryption key management
-- ⏳ REST API development
+- 🔄 REST API development (scaffold done)
 - ⏳ WebSocket for real-time notifications
 
 ### Phase 4: Frontend Development

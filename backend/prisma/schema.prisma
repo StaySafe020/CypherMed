@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Patient {
+  id                  String                @id @default(uuid())
+  wallet              String                @unique
+  name                String
+  dob                 DateTime
+  emergencyContact    String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  records             Record[]
+  accessRequests      AccessRequest[]
+  AccessGrantOffchain AccessGrantOffchain[]
+  AuditEvent          AuditEvent[]
+}
+
+model Record {
+  id          String   @id @default(uuid())
+  patientId   String
+  patient     Patient  @relation(fields: [patientId], references: [id])
+  recordType  String
+  dataHash    String // hash of encrypted blob
+  storagePath String? // object store path or CID
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AccessRequest {
+  id          String   @id @default(uuid())
+  patientId   String
+  patient     Patient  @relation(fields: [patientId], references: [id])
+  requester   String
+  role        String
+  reason      String?
+  status      String   @default("pending")
+  requestedAt DateTime @default(now())
+  expiresAt   DateTime
+}
+
+model AccessGrantOffchain {
+  id           String    @id @default(uuid())
+  patientId    String
+  patient      Patient   @relation(fields: [patientId], references: [id])
+  provider     String
+  role         String
+  allowedTypes String
+  grantedAt    DateTime  @default(now())
+  expiresAt    DateTime?
+}
+
+model AuditEvent {
+  id        String   @id @default(uuid())
+  patientId String
+  patient   Patient? @relation(fields: [patientId], references: [id])
+  recordId  String?
+  accessor  String
+  action    String
+  success   Boolean  @default(true)
+  reason    String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
