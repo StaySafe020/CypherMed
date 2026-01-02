@@ -238,6 +238,42 @@ CypherMed/
 
 ---
 
+## 🧭 Backend Local Development (Docker & Prisma)
+
+We provide a Docker Compose file and Prisma setup to run a local Postgres instance for development and testing.
+
+Why use Docker here:
+- Reproducible local DB (same Postgres version across developers)
+- Easy CI parity for migrations and integration tests
+
+Quick start (from repository root):
+
+```bash
+# 1) Start local Postgres using the provided Compose file
+cd backend
+docker-compose up -d
+
+# 2) Create the `.env` file used by Prisma
+echo 'DATABASE_URL="postgresql://postgres:postgres@localhost:5432/cyphermed?schema=public"' > .env
+
+# 3) Generate Prisma client and run migrations
+npx prisma generate
+npx prisma migrate dev --name init
+
+# 4) Seed a test patient (script provided)
+npm run prisma:seed
+
+# 5) Stop containers when done
+docker-compose down
+```
+
+Notes:
+- The Compose file uses `postgres:15` and mounts a seed SQL file on first init. If your system has the legacy `docker-compose` binary, use `docker-compose` (we include support for that); otherwise `docker compose` works when the Docker Compose plugin is available.
+- Prisma creates tables with model-casing (e.g., `"Patient"`). When querying directly with `psql`, quote identifiers or use the exact casing.
+
+If you prefer not to run Docker locally, use a managed Postgres instance and set `DATABASE_URL` accordingly in `backend/.env`.
+
+
 ## 🧪 Testing
 
 ```bash
