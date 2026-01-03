@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import patientsRouter from "./routes/patients";
+import recordsRouter from "./routes/records";
 import prisma from "./prisma";
 
 dotenv.config();
@@ -21,6 +22,7 @@ app.get("/health", async (req, res) => {
 });
 
 app.use("/api/patients", patientsRouter);
+app.use("/api/records", recordsRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
