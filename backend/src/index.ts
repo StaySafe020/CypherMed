@@ -3,6 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import patientsRouter from "./routes/patients";
 import recordsRouter from "./routes/records";
+import accessRequestsRouter from "./routes/accessRequests";
+import auditLogsRouter from "./routes/auditLogs";
 import prisma from "./prisma";
 
 dotenv.config();
@@ -23,6 +25,8 @@ app.get("/health", async (req, res) => {
 
 app.use("/api/patients", patientsRouter);
 app.use("/api/records", recordsRouter);
+app.use("/api/access-requests", accessRequestsRouter);
+app.use("/api/audit-logs", auditLogsRouter);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
