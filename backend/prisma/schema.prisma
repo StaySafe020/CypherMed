@@ -19,6 +19,7 @@ model Patient {
   accessRequests      AccessRequest[]
   AccessGrantOffchain AccessGrantOffchain[]
   AuditEvent          AuditEvent[]
+  Notification        Notification[]
 }
 
 model Record {
@@ -67,4 +68,18 @@ model AuditEvent {
   reason    String?
   metadata  Json?
   createdAt DateTime @default(now())
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  patientId  String
+  patient    Patient  @relation(fields: [patientId], references: [id])
+  type       String   // access_request, access_granted, access_revoked, record_created, etc.
+  title      String
+  message    String
+  read       Boolean  @default(false)
+  priority   String   @default("normal") // low, normal, high, urgent
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  readAt     DateTime?
 }

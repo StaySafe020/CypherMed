@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import prisma from "../prisma";
+import { notifyAccessRequest, notifyAccessGranted, notifyAccessDenied } from "../utils/notifications";
 
 const router = Router();
 
@@ -46,6 +47,9 @@ router.post("/", async (req: Request, res: Response) => {
         metadata: { requestId: accessRequest.id, role },
       },
     });
+
+    // Send notification to patient
+    await notifyAccessRequest(patient.wallet, requester, role, accessRequest.id);
 
     res.status(201).json(accessRequest);
   } catch (err) {
@@ -139,7 +143,7 @@ router.post("/:id/approve", async (req: Request, res: Response) => {
       ? new Date(grantExpiresAt) 
       : request.expiresAt;
 
-    await prisma.accessGrantOffchain.create({
+    const grant = await prisma.accessGrantOffchain.create({
       data: {
         patientId: request.patientId,
         provider: request.requester,
@@ -147,6 +151,11 @@ router.post("/:id/approve", async (req: Request, res: Response) => {
         allowedTypes: allowedTypes || "all",
         expiresAt: grantExpiration,
       },
+    });
+
+    // Get patient info for notification
+    const patient = await prisma.patient.findUnique({ 
+      where: { id: request.patientId } 
     });
 
     // Create audit event
@@ -165,6 +174,16 @@ router.post("/:id/approve", async (req: Request, res: Response) => {
         },
       },
     });
+
+    // Send notification
+    if (patient) {
+      await notifyAccessGranted(
+        patient.wallet,
+        request.requester,
+        allowedTypes || "all",
+        grant.id
+      );
+    }
 
     res.json({ 
       success: true, 
@@ -202,6 +221,11 @@ router.post("/:id/deny", async (req: Request, res: Response) => {
       },
     });
 
+    // Get patient info for notification
+    const patient = await prisma.patient.findUnique({ 
+      where: { id: request.patientId } 
+    });
+
     // Create audit event
     await prisma.auditEvent.create({
       data: {
@@ -217,6 +241,11 @@ router.post("/:id/deny", async (req: Request, res: Response) => {
         },
       },
     });
+
+    // Send notification
+    if (patient) {
+      await notifyAccessDenied(patient.wallet, request.requester, id);
+    }
 
     res.json({ 
       success: true, 

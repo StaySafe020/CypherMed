@@ -259,6 +259,123 @@ Returns all records of a specific type.
 
 ---
 
+## Notifications API
+
+### Get All Notifications
+```bash
+GET /api/notifications?wallet=patient_wallet&limit=50&offset=0
+GET /api/notifications?wallet=patient_wallet&unreadOnly=true
+GET /api/notifications?wallet=patient_wallet&type=access_request&priority=high
+```
+
+Response:
+```json
+{
+  "notifications": [...],
+  "pagination": {
+    "total": 15,
+    "unreadCount": 5,
+    "limit": 50,
+    "offset": 0
+  }
+}
+```
+
+### Get Single Notification
+```bash
+GET /api/notifications/:id
+```
+
+### Mark Notification as Read
+```bash
+PATCH /api/notifications/:id/read
+```
+
+### Mark All as Read
+```bash
+POST /api/notifications/mark-all-read
+Content-Type: application/json
+
+{
+  "wallet": "patient_wallet"
+}
+```
+
+### Delete Notification
+```bash
+DELETE /api/notifications/:id
+```
+
+### Delete All Read Notifications
+```bash
+DELETE /api/notifications
+Content-Type: application/json
+
+{
+  "wallet": "patient_wallet"
+}
+```
+
+### Get Notification Statistics
+```bash
+GET /api/notifications/stats/summary?wallet=patient_wallet
+```
+
+Response:
+```json
+{
+  "summary": {
+    "total": 50,
+    "unread": 5,
+    "read": 45
+  },
+  "byType": [
+    { "type": "access_request", "count": 15 }
+  ],
+  "byPriority": [
+    { "priority": "high", "count": 10 }
+  ],
+  "recentNotifications": [...]
+}
+```
+
+---
+
+## 🔌 WebSocket Real-Time Notifications
+
+### Connect to WebSocket
+```javascript
+const socket = io('http://localhost:3000');
+
+socket.on('connect', () => {
+  socket.emit('authenticate', 'patient_wallet_address');
+});
+
+socket.on('authenticated', (data) => {
+  console.log('Connected:', data);
+});
+
+socket.on('notification', (notification) => {
+  // Real-time notification received
+  console.log(notification.title, notification.message);
+});
+
+socket.on('unread_count', (data) => {
+  // Unread count updated
+  console.log('Unread:', data.count);
+});
+```
+
+### WebSocket Events
+- `authenticate` - Authenticate with wallet address
+- `authenticated` - Confirmation of authentication
+- `notification` - New notification received
+- `unread_count` - Unread notification count
+- `mark_read` - Mark notification as read
+- `mark_all_read` - Mark all as read
+
+---
+
 ## Access Requests API
 
 ### Create Access Request

@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import prisma from "../prisma";
 import { upload, getFilePath, fileExists, deleteFile, readFile, getFileMetadata } from "../utils/storage";
 import { encrypt, decrypt, hashData } from "../utils/encryption";
+import { notifyRecordCreated, notifyRecordUpdated, notifyRecordAccessed } from "../utils/notifications";
 
 const router = Router();
 
@@ -125,6 +126,11 @@ router.post("/", upload.single("file"), async (req: Request, res: Response) => {
       },
     });
 
+    // Send notification
+    if (patient && accessor && accessor !== "system") {
+      await notifyRecordCreated(patient.wallet, recordType, accessor, record.id);
+    }
+
     res.status(201).json(record);
   } catch (err: any) {
     res.status(500).json({ error: err.message || String(err) });
@@ -218,6 +224,16 @@ router.get("/:id", async (req: Request, res: Response) => {
         metadata: { note: "Record viewed via API" },
       },
     });
+
+    // Send notification if accessed by someone other than system
+    if (accessor && accessor !== "system" && accessor !== record.patient.wallet) {
+      await notifyRecordAccessed(
+        record.patient.wallet, 
+        String(accessor), 
+        record.recordType, 
+        record.id
+      );
+    }
 
     // Handle decryption if key provided
     let decryptedData = null;

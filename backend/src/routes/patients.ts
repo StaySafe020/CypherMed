@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import prisma from "../prisma";
 import { generatePatientKey } from "../utils/encryption";
+import { notifyAccessGranted, notifyAccessRevoked } from "../utils/notifications";
 
 const router = Router();
 
@@ -321,6 +322,9 @@ router.post("/:id/grant-access", async (req: Request, res: Response) => {
       },
     });
 
+    // Send notification
+    await notifyAccessGranted(patient.wallet, provider, allowedTypes || "all", grant.id);
+
     res.status(201).json(grant);
   } catch (err: any) {
     res.status(500).json({ error: err.message || String(err) });
@@ -369,6 +373,9 @@ router.delete("/:id/revoke-access/:grantId", async (req: Request, res: Response)
         },
       },
     });
+
+    // Send notification
+    await notifyAccessRevoked(patient.wallet, grant.provider, grantId);
 
     res.json({ ok: true, revoked: true });
   } catch (err: any) {
