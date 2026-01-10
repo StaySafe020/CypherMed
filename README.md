@@ -381,7 +381,7 @@ get_audit_logs(
 - 🔄 PostgreSQL integration (schema done, migrations pending)
 - ⏳ Encryption key management
 - 🔄 REST API development (scaffold done)
-- ⏳ WebSocket for real-time notifications
+- ✅ WebSocket for real-time notifications
 
 ### Phase 4: Frontend Development
 - ⏳ React web application
