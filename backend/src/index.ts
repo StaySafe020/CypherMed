@@ -7,6 +7,8 @@ import recordsRouter from "./routes/records";
 import accessRequestsRouter from "./routes/accessRequests";
 import auditLogsRouter from "./routes/auditLogs";
 import notificationsRouter from "./routes/notifications";
+import guardiansRouter from "./routes/guardians";
+import birthRegistrationsRouter from "./routes/birthRegistrations";
 import prisma from "./prisma";
 import { initializeSocketIO } from "./utils/socket";
 
@@ -36,6 +38,8 @@ app.use("/api/records", recordsRouter);
 app.use("/api/access-requests", accessRequestsRouter);
 app.use("/api/audit-logs", auditLogsRouter);
 app.use("/api/notifications", notificationsRouter);
+app.use("/api/guardians", guardiansRouter);
+app.use("/api/birth-registrations", birthRegistrationsRouter);
 
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {

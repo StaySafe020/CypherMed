@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Glassmorphism base styles */
+.glass {
+  @apply backdrop-blur-md bg-white/30 border border-white/20 rounded-2xl;
+}
+
+.glass-sm {
+  @apply backdrop-blur-md bg-white/40 border border-white/30 rounded-xl;
+}
+
+.glass-dark {
+  @apply backdrop-blur-lg bg-white/10 border border-white/10 rounded-2xl;
+}
+
+/* Smooth transitions */
+.transition-smooth {
+  @apply transition-all duration-300 ease-out;
+}
+
+/* Button base styles */
+.btn-primary {
+  @apply px-6 py-3 rounded-xl font-semibold transition-smooth;
+  @apply bg-gradient-to-r from-hospital-blue-600 to-hospital-teal-600 text-white;
+  @apply hover:from-hospital-blue-700 hover:to-hospital-teal-700;
+  @apply shadow-lg hover:shadow-xl;
+}
+
+.btn-secondary {
+  @apply px-6 py-3 rounded-xl font-semibold transition-smooth;
+  @apply glass text-hospital-blue-700;
+  @apply hover:bg-white/40;
+}
+
+.btn-tertiary {
+  @apply px-4 py-2 rounded-lg font-medium transition-smooth;
+  @apply text-hospital-blue-600 hover:bg-hospital-blue-50;
+}
+
+/* Input styles */
+.input-glass {
+  @apply w-full px-4 py-3 rounded-xl transition-smooth;
+  @apply glass text-gray-800 placeholder-gray-500;
+  @apply focus:outline-none focus:ring-2 focus:ring-hospital-blue-400 focus:bg-white/50;
+}
+
+/* Animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s ease-out;
+}

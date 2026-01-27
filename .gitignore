@@ -5,3 +5,16 @@ target
 node_modules
 test-ledger
 .yarn
+.env
+.env.local
+.env.*.local
+dist
+build
+.vscode/settings.json
+*.log
+.DS_Store
+app/node_modules
+app/.next
+backend/node_modules
+backend/.env
+**/.env

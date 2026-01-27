@@ -12,7 +12,11 @@ model Patient {
   wallet              String                @unique
   name                String
   dob                 DateTime
+  birthCertificate    String?               // Birth certificate ID/hash
+  nationalId          String?               // SSN or national health ID
   emergencyContact    String?
+  isMinor             Boolean               @default(false)
+  guardianTransferredAt DateTime?           // When control transferred from guardian to patient
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
   records             Record[]
@@ -20,6 +24,8 @@ model Patient {
   AccessGrantOffchain AccessGrantOffchain[]
   AuditEvent          AuditEvent[]
   Notification        Notification[]
+  guardians           Guardian[]            @relation("PatientGuardians")
+  wards               Guardian[]            @relation("GuardianWards")
 }
 
 model Record {
@@ -82,4 +88,39 @@ model Notification {
   metadata   Json?
   createdAt  DateTime @default(now())
   readAt     DateTime?
+}
+
+model Guardian {
+  id               String   @id @default(uuid())
+  patientId        String   // The minor/ward
+  patient          Patient  @relation("PatientGuardians", fields: [patientId], references: [id])
+  guardianWallet   String   // Guardian's wallet address
+  guardianPatientId String? // If guardian is also a patient in system
+  guardianPatient  Patient? @relation("GuardianWards", fields: [guardianPatientId], references: [id])
+  relationship     String   // "parent", "legal_guardian", "foster_parent"
+  canApprove       Boolean  @default(true)
+  canView          Boolean  @default(true)
+  canCreate        Boolean  @default(true)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  expiresAt        DateTime? // Auto-expires when patient turns 18
+  revokedAt        DateTime?
+
+  @@unique([patientId, guardianWallet])
+}
+
+model BirthRegistration {
+  id                String   @id @default(uuid())
+  patientId         String   @unique
+  birthCertificateId String  @unique
+  birthDate         DateTime
+  birthPlace        String   // Hospital/city
+  birthWeight       Float?   // in grams
+  birthLength       Float?   // in cm
+  motherName        String?
+  fatherName        String?
+  attendingPhysician String?
+  registeredBy      String   // Hospital/clinic wallet
+  registeredAt      DateTime @default(now())
+  metadata          Json?    // Additional birth details
 }

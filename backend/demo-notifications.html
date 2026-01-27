@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CypherMed - Notification Dashboard</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        h1 {
+            color: #667eea;
+            font-size: 24px;
+        }
+        .status {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .badge {
+            background: #ef4444;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .ws-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #10b981;
+        }
+        .ws-status.disconnected { color: #ef4444; }
+        .ws-status::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .notifications {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .notification {
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            background: #f9fafb;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        .notification.unread {
+            background: #eff6ff;
+            border-left-color: #3b82f6;
+        }
+        .notification.high {
+            border-left-color: #f59e0b;
+            background: #fffbeb;
+        }
+        .notification.urgent {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 8px;
+        }
+        .notification-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: #1f2937;
+        }
+        .notification-meta {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .priority-badge {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .priority-badge.high {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .priority-badge.urgent {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .priority-badge.normal {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .notification-time {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .notification-message {
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .notification-type {
+            font-size: 11px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+        .wallet-input {
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="wallet-input">
+            <input type="text" id="walletInput" placeholder="Enter wallet address (e.g., test_wallet_123)" value="test_wallet_123">
+        </div>
+
+        <div class="header">
+            <h1>🔔 CypherMed Notifications</h1>
+            <div class="status">
+                <div class="ws-status" id="wsStatus">
+                    <span>WebSocket Connected</span>
+                </div>
+                <div class="badge" id="unreadBadge">0 Unread</div>
+            </div>
+        </div>
+
+        <div class="notifications" id="notificationContainer">
+            <div class="empty-state">
+                <p>Waiting for notifications...</p>
+                <p style="font-size: 12px; margin-top: 8px;">Connect wallet and trigger events</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let socket;
+        let unreadCount = 0;
+        const walletInput = document.getElementById('walletInput');
+        const wsStatus = document.getElementById('wsStatus');
+        const unreadBadge = document.getElementById('unreadBadge');
+        const container = document.getElementById('notificationContainer');
+
+        function connectSocket(wallet) {
+            if (socket) socket.close();
+
+            socket = io('http://localhost:3000');
+
+            socket.on('connect', () => {
+                console.log('Connected:', socket.id);
+                wsStatus.classList.remove('disconnected');
+                wsStatus.innerHTML = '<span>WebSocket Connected</span>';
+                socket.emit('authenticate', wallet);
+            });
+
+            socket.on('authenticated', (data) => {
+                console.log('Authenticated:', data);
+            });
+
+            socket.on('notification', (notification) => {
+                addNotification(notification);
+            });
+
+            socket.on('unread_count', (data) => {
+                unreadCount = data.count;
+                updateBadge();
+            });
+
+            socket.on('disconnect', () => {
+                wsStatus.classList.add('disconnected');
+                wsStatus.innerHTML = '<span>WebSocket Disconnected</span>';
+            });
+        }
+
+        function addNotification(notif) {
+            if (container.querySelector('.empty-state')) {
+                container.innerHTML = '';
+            }
+
+            const div = document.createElement('div');
+            div.className = `notification unread ${notif.priority}`;
+            div.innerHTML = `
+                <div class="notification-header">
+                    <div class="notification-title">${notif.title}</div>
+                    <div class="notification-meta">
+                        <span class="priority-badge ${notif.priority}">${notif.priority}</span>
+                        <span class="notification-time">Just now</span>
+                    </div>
+                </div>
+                <div class="notification-message">${notif.message}</div>
+                <div class="notification-type">${notif.type.replace('_', ' ')}</div>
+            `;
+            container.insertBefore(div, container.firstChild);
+            unreadCount++;
+            updateBadge();
+        }
+
+        function updateBadge() {
+            unreadBadge.textContent = `${unreadCount} Unread`;
+        }
+
+        walletInput.addEventListener('change', (e) => {
+            connectSocket(e.target.value);
+        });
+
+        // Auto-connect on load
+        connectSocket(walletInput.value);
+
+        // Demo notifications (remove after testing)
+        setTimeout(() => {
+            addNotification({
+                type: 'access_request',
+                title: 'New Access Request',
+                message: 'Dr. Sarah Chen (Doctor) has requested access to your medical records.',
+                priority: 'high'
+            });
+        }, 2000);
+
+        setTimeout(() => {
+            addNotification({
+                type: 'record_created',
+                title: 'New Medical Record',
+                message: 'A new Prescription record has been added by Dr. Michael Johnson.',
+                priority: 'normal'
+            });
+        }, 4000);
+
+        setTimeout(() => {
+            addNotification({
+                type: 'access_granted',
+                title: 'Access Granted',
+                message: 'You have granted City Hospital access to your Lab Results records.',
+                priority: 'normal'
+            });
+        }, 6000);
+    </script>
+</body>
+</html>
