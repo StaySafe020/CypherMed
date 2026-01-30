@@ -98,25 +98,21 @@ export default function OnboardingPage() {
           </button>
         </div>
 
-        {/* CTA Buttons */}
+        {/* CTA Button */}
         <div className="flex flex-col gap-4 animate-slide-up">
-          <Link href="/login" className="w-full text-center">
+          <Link href="/connect" className="w-full text-center">
             <button className="w-full btn-primary">
-              Get Started
-            </button>
-          </Link>
-          <Link href="/login?tab=signin" className="w-full text-center">
-            <button className="w-full btn-secondary">
-              I already have an account
+              Connect Wallet
             </button>
           </Link>
         </div>
 
         {/* Footer */}
         <div className="text-center mt-12 text-gray-500 text-sm">
-          <p>Powered by @Solana • Built with @Rust</p>
+          <p>Powered by Solana • Built with Rust</p>
         </div>
       </div>
     </div>
   )
 }
+

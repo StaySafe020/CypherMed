@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { Providers } from './providers'
 
 export const metadata: Metadata = {
   title: 'CypherMed - Your Medical Records, Your Control',
@@ -14,8 +15,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-gradient-to-br from-hospital-blue-50 via-white to-hospital-teal-50 min-h-screen">
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   )
 }
+
