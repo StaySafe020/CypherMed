@@ -112,17 +112,19 @@ CypherMed leverages Solana's high-performance blockchain to create **immutable a
 - **Solana**: High-performance L1 blockchain
 - **Anchor Framework**: Rust-based Solana development framework
 - **Rust**: Smart contract programming language
+- **Helius RPC**: Enhanced Solana RPC with better reliability and developer tooling
 - **SPL Token** (Future): For tokenomics/payment system
 
-### Backend (Future)
+### Backend
 - **PostgreSQL**: Encrypted medical record storage
 - **Node.js/Express**: API layer between frontend and blockchain
 - **TypeScript**: Type-safe backend development
+- **Socket.IO**: Real-time notifications
 
-### Frontend (Future)
-- **React**: User interface framework
+### Frontend
+- **Next.js/React**: User interface framework
 - **Solana Web3.js**: Blockchain interaction
-- **Anchor Provider**: Wallet integration (Phantom, Solflare)
+- **Wallet Adapter**: Integration with Phantom, Solflare
 - **TailwindCSS**: UI styling
 
 ### Security
@@ -130,6 +132,17 @@ CypherMed leverages Solana's high-performance blockchain to create **immutable a
 - **Key Management**: Patient-controlled private keys
 - **Access Control**: On-chain authorization checks
 - **Audit Logging**: Immutable blockchain records
+
+### Helius Integration
+CypherMed uses [Helius](https://helius.dev) RPC for:
+- **Reliable RPC**: Higher rate limits and better uptime than public endpoints
+- **Enhanced Performance**: Faster transaction confirmation and data retrieval
+- **Developer Tooling**: Access to Helius APIs for transaction parsing and webhooks
+
+To configure Helius, set your API key in `app/.env.local`:
+```bash
+NEXT_PUBLIC_HELIUS_API_KEY=your_helius_api_key_here
+```
 
 ---
 
