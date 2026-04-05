@@ -6,46 +6,23 @@ labels: bug
 assignees: ''
 ---
 
+
 ## Description
 
-A clear and concise description of the bug.
+Describe the bug and what you expected to happen.
 
-## Steps to Reproduce
+## Command to Recreate
 
-1. 
-2. 
-3. 
+Paste the exact command(s) or steps to reproduce the bug. For example:
 
-## Expected Behavior
 
-What you expected to happen.
 
-## Actual Behavior
-
-What actually happened.
 
 ## Environment
 
-- OS: 
-- Solana CLI version: (`solana --version`)
-- Anchor version: (`anchor --version`)
-- Node.js version: (`node --version`)
-- Network: localnet / devnet / mainnet
+add your environment
 
-## Component Affected
+## Screenshot / Image (optional)
 
-- [ ] Smart contract (programs/cyphermed)
-- [ ] Backend API (backend/)
-- [ ] Frontend (app/)
-- [ ] Tests
-- [ ] Documentation
-
-## Error Output
-
+If possible, attach a screenshot or image of the error/output.
 ```
-Paste any relevant error messages or logs here
-```
-
-## Additional Context
-
-Any other context, screenshots, or transaction signatures.
