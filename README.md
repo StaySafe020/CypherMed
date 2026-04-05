@@ -1,468 +1,120 @@
-# CypherMed - Decentralized Medical Records Protocol
+# CypherMed
 
-A blockchain-based healthcare platform built on Solana that gives patients true ownership and control over their medical records while providing hospitals, doctors, and insurers with secure, compliant, and fraud-proof access.
+Decentralized medical records protocol built on Solana. Patients own their data — hospitals, doctors, and insurers access it only with explicit, auditable consent.
 
-## 🎯 Overview
-
-CypherMed leverages Solana's high-performance blockchain to create **immutable audit trails** of medical record access while keeping sensitive patient data encrypted in off-chain PostgreSQL databases. This hybrid approach ensures:
-
-- **Patient Sovereignty**: Complete control over who accesses medical data
-- **HIPAA Compliance**: Cryptographic proof of consent and access
-- **Fraud Prevention**: Tamper-proof audit logs for insurers
-- **Emergency Access**: Break-glass protocols for life-threatening situations
-- **Interoperability**: Seamless data sharing between healthcare providers
+For full technical details see [CYPHERMED_DOCS.md](CYPHERMED_DOCS.md).
 
 ---
 
-## ✨ Key Features
+## Overview
 
-### 1. **Patient-Controlled Access Management**
-- Patients can grant and revoke access to specific healthcare providers
-- Granular permissions for doctors, hospitals, and insurance companies
-- Individual access control per provider (not institution-wide by default)
-- Time-based access grants with automatic expiration
-- Condition-based access rules per record type
+CypherMed combines Solana's immutable ledger with off-chain encrypted storage (PostgreSQL) so that sensitive medical data never touches the blockchain while every access event is permanently audited on-chain.
 
-### 2. **Role-Based Access Control (RBAC)**
-- **Patient**: Full ownership and control of all medical records
-- **Doctor**: View and create records with patient permission
-- **Hospital**: Institutional access to patient records during treatment
-- **Insurer**: Read-only access for claims verification
-- **Emergency Responder**: Temporary emergency access with audit trail
-
-### 3. **Immutable Audit Trail**
-- Every access attempt is recorded on-chain (successful and failed)
-- Timestamps for all record creation, modification, and access events
-- Cryptographic proof of who accessed what and when
-- Cannot be altered or deleted - permanent compliance record
-- Real-time monitoring of unauthorized access attempts
-
-### 4. **Emergency Access System**
-- "Break-glass" access for life-threatening situations
-- Emergency responders can access critical medical information
-- All emergency access is logged with justification
-- Post-emergency audit and review process
-- Patient notification of emergency access
-
-### 5. **Multi-Record Type Support**
-- **General Medical Records**: Patient history, diagnoses, treatments
-- **Prescriptions**: Medication history and current prescriptions
-- **Lab Results**: Blood work, imaging, pathology reports
-- **Visit Summaries**: Doctor's notes and consultation records
-- **Immunization Records**: Vaccination history
-- Each record type has customizable access rules
-
-### 6. **Privacy-First Architecture**
-- Sensitive medical data stored encrypted in off-chain PostgreSQL
-- Only metadata, timestamps, and access logs stored on-chain
-- Zero-knowledge proofs for verification without data exposure
-- End-to-end encryption for all off-chain data
-- Patient controls encryption keys
-
-### 7. **Compliance & Verification**
-- HIPAA-compliant audit trails
-- Cryptographic proof of patient consent
-- Fraud-proof verification for insurance claims
-- Regulatory compliance automation
-- Exportable audit logs for legal requirements
-
-### 8. **Access Request System**
-- Healthcare providers can request access from patients
-- Patients approve/deny access requests
-- Automated notifications for pending requests
-- Batch approval for multiple providers
-- Access history and statistics
-
-### 9. **Lifetime Medical Records (Birth-to-Death)**
-- **Birth Registration**: Hospital registers newborns with birth certificate
-- **Guardian Management**: Parents control minor's records (auto-expires at 18)
-- **Age-Based Transfer**: Automatic control handoff when patient turns 18
-- **Family Linking**: Connect parent-child relationships for hereditary tracking
-- **Permanent Record**: Never lose medical history from birth onward
+- **Patient Sovereignty** — complete control over who accesses medical data
+- **Immutable Audit Trail** — every access attempt recorded on-chain, tamper-proof
+- **Emergency Access** — break-glass protocols with severity levels and permanent audit
+- **Universal Identity** — privacy-preserving IDs, not raw wallet addresses
+- **Full Hospital Operations** — 28 record types, 13 roles, birth-to-death records
 
 ---
 
-## 🏗️ Architecture
+## Tech Stack
 
-### On-Chain (Solana)
-- **Patient Accounts**: Identity and access control lists
-- **Access Grants**: Permissions and expiration timestamps
-- **Audit Logs**: Immutable record of all access events
-- **Record Metadata**: Record IDs, types, timestamps, and hashes
-- **Emergency Access**: Break-glass event logs
+| Layer | Technology |
+|---|---|
+| Smart Contract | Anchor Framework (Rust), Solana |
+| RPC | [Helius](https://helius.dev) |
+| Backend | Node.js/Express, PostgreSQL, Prisma ORM |
+| Frontend | Next.js 14, React 18, Solana Wallet Adapter, TailwindCSS |
+| Encryption | AES-256-GCM (off-chain data), PBKDF2 key derivation |
+| Real-time | Socket.IO |
 
-### Off-Chain (PostgreSQL)
-- **Encrypted Medical Records**: Full patient medical data
-- **IPFS/Arweave CIDs**: Pointers to distributed storage (future)
-- **Encryption Keys**: Patient-controlled key management
-- **Session Data**: Temporary access tokens
-
-### Hybrid Benefits
-✅ **Privacy**: Sensitive data never touches the blockchain  
-✅ **Immutability**: Access logs cannot be tampered with  
-✅ **Performance**: Fast queries on off-chain DB, verified on-chain  
-✅ **Cost-Effective**: Only critical data incurs blockchain storage costs  
-✅ **Scalability**: PostgreSQL handles high-volume medical data  
+**Program ID (devnet):** `34LxHEYnuRTy2dif922hNttBbrPNQ6pj7pThyCxwxUrL`
 
 ---
 
-## 🛠️ Tech Stack
+## Quick Start
 
-### Blockchain Layer
-- **Solana**: High-performance L1 blockchain
-- **Anchor Framework**: Rust-based Solana development framework
-- **Rust**: Smart contract programming language
-- **Helius RPC**: Enhanced Solana RPC with better reliability and developer tooling
-- **SPL Token** (Future): For tokenomics/payment system
+### Prerequisites
+
+- Rust (latest stable)
+- Solana CLI v1.18+
+- Anchor Framework v0.32+
+- Node.js v18+, Yarn
+- Docker (for backend PostgreSQL)
+
+### Smart Contract
+
+```bash
+git clone https://github.com/StaySafe020/CypherMed.git
+cd CypherMed
+yarn install
+anchor build
+anchor test
+```
 
 ### Backend
-- **PostgreSQL**: Encrypted medical record storage
-- **Node.js/Express**: API layer between frontend and blockchain
-- **TypeScript**: Type-safe backend development
-- **Socket.IO**: Real-time notifications
+
+```bash
+cd backend
+docker-compose up -d
+echo 'DATABASE_URL="postgresql://postgres:postgres@localhost:5432/cyphermed?schema=public"' > .env
+npx prisma generate
+npx prisma migrate dev
+npm run dev
+```
 
 ### Frontend
-- **Next.js/React**: User interface framework
-- **Solana Web3.js**: Blockchain interaction
-- **Wallet Adapter**: Integration with Phantom, Solflare
-- **TailwindCSS**: UI styling
 
-### Security
-- **Encryption**: AES-256 for data at rest
-- **Key Management**: Patient-controlled private keys
-- **Access Control**: On-chain authorization checks
-- **Audit Logging**: Immutable blockchain records
-
-### Helius Integration
-CypherMed uses [Helius](https://helius.dev) RPC for:
-- **Reliable RPC**: Higher rate limits and better uptime than public endpoints
-- **Enhanced Performance**: Faster transaction confirmation and data retrieval
-- **Developer Tooling**: Access to Helius APIs for transaction parsing and webhooks
-
-To configure Helius, set your API key in `app/.env.local`:
 ```bash
+cd app
+cp .env.local.example .env.local  # add your Helius API key
+npm install
+npm run dev
+```
+
+Configure your Helius API key in `app/.env.local`:
+```
 NEXT_PUBLIC_HELIUS_API_KEY=your_helius_api_key_here
 ```
 
 ---
 
-## 📦 Project Structure
+## Documentation
 
-```
-CypherMed/
-├── programs/
-│   └── cyphermed/
-│       ├── src/
-│       │   ├── lib.rs              # Main program entry
-│       │   ├── state/              # Account structures
-│       │   │   ├── mod.rs
-│       │   │   ├── patient.rs      # Patient account
-│       │   │   ├── record.rs       # Medical record metadata
-│       │   │   ├── access_grant.rs # Access permissions
-│       │   │   └── audit_log.rs    # Audit trail entries
-│       │   ├── instructions/       # Program instructions
-│       │   │   ├── mod.rs
-│       │   │   ├── initialize_patient.rs
-│       │   │   ├── create_record.rs
-│       │   │   ├── grant_access.rs
-│       │   │   ├── revoke_access.rs
-│       │   │   ├── access_record.rs
-│       │   │   └── emergency_access.rs
-│       │   ├── errors.rs           # Custom error codes
-│       │   └── utils.rs            # Helper functions
-│       └── Cargo.toml
-├── tests/                          # Integration tests
-├── migrations/                     # Deployment scripts
-├── app/                            # Frontend (future)
-├── Anchor.toml                     # Anchor configuration
-├── Cargo.toml                      # Workspace configuration
-└── README.md                       # This file
-```
+| Document | Description |
+|---|---|
+| [CYPHERMED_DOCS.md](CYPHERMED_DOCS.md) | Architecture, project structure, usage examples, testing, security, roadmap |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute, coding standards, PR process |
+| [SECURITY.md](SECURITY.md) | Vulnerability disclosure policy |
+| [backend/API_DOCUMENTATION.md](backend/API_DOCUMENTATION.md) | REST API reference |
 
 ---
 
-## 🚀 Getting Started
+## Contributing
 
-### Prerequisites
-
-1. **Install Rust**
-   ```bash
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-   source $HOME/.cargo/env
-   ```
-
-2. **Install Solana CLI**
-   ```bash
-   sh -c "$(curl -sSfL https://release.solana.com/stable/install)"
-   export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
-   ```
-
-3. **Install Anchor**
-   ```bash
-   cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
-   avm install latest
-   avm use latest
-   ```
-
-4. **Install Node.js & Yarn**
-   ```bash
-   # Install Node.js 18+
-   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-   nvm install 18
-   nvm use 18
-   
-   # Install Yarn
-   npm install -g yarn
-   ```
-
-### Setup Development Environment
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/StaySafe020/CypherMed.git
-   cd CypherMed
-   ```
-
-2. **Install dependencies**
-   ```bash
-   yarn install
-   ```
-
-3. **Configure Solana for local development**
-   ```bash
-   solana config set --url localhost
-   solana-keygen new  # Create a new keypair if needed
-   ```
-
-4. **Start local validator**
-   ```bash
-   solana-test-validator
-   ```
-
-5. **Build the program**
-   ```bash
-   anchor build
-   ```
-
-6. **Run tests**
-   ```bash
-   anchor test
-   ```
-
-7. **Deploy to devnet**
-   ```bash
-   solana config set --url devnet
-   solana airdrop 2  # Get devnet SOL
-   anchor deploy
-   ```
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR.
 
 ---
 
-## 🧭 Backend Local Development (Docker & Prisma)
+## License
 
-We provide a Docker Compose file and Prisma setup to run a local Postgres instance for development and testing.
-
-Why use Docker here:
-- Reproducible local DB (same Postgres version across developers)
-- Easy CI parity for migrations and integration tests
-
-Quick start (from repository root):
-
-```bash
-# 1) Start local Postgres using the provided Compose file
-cd backend
-docker-compose up -d
-
-# 2) Create the `.env` file used by Prisma
-echo 'DATABASE_URL="postgresql://postgres:postgres@localhost:5432/cyphermed?schema=public"' > .env
-
-# 3) Generate Prisma client and run migrations
-npx prisma generate
-npx prisma migrate dev --name init
-
-# 4) Seed a test patient (script provided)
-npm run prisma:seed
-
-# 5) Stop containers when done
-docker-compose down
-```
-
-Notes:
-- The Compose file uses `postgres:15` and mounts a seed SQL file on first init. If your system has the legacy `docker-compose` binary, use `docker-compose` (we include support for that); otherwise `docker compose` works when the Docker Compose plugin is available.
-- Prisma creates tables with model-casing (e.g., `"Patient"`). When querying directly with `psql`, quote identifiers or use the exact casing.
-
-If you prefer not to run Docker locally, use a managed Postgres instance and set `DATABASE_URL` accordingly in `backend/.env`.
-
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-anchor test
-
-# Run specific test file
-anchor test --skip-build tests/patient.test.ts
-
-# Run with detailed logs
-RUST_LOG=debug anchor test
-```
+Licensed under the Apache License 2.0 — see [LICENSE](LICENSE).
 
 ---
 
-## 📝 Usage Examples
+## Contact
 
-### Initialize Patient Account
-```rust
-// Patient registers on the platform
-initialize_patient(
-    patient_wallet: Pubkey,
-    name: String,
-    date_of_birth: i64,
-)
-```
-
-### Grant Access to Doctor
-```rust
-// Patient grants a doctor access to specific record types
-grant_access(
-    patient: Pubkey,
-    provider: Pubkey,
-    role: Role::Doctor,
-    record_types: vec![RecordType::GeneralMedical, RecordType::LabResults],
-    expiration: Some(timestamp + 30_days),
-)
-```
-
-### Create Medical Record
-```rust
-// Doctor creates a new medical record
-create_record(
-    patient: Pubkey,
-    provider: Pubkey,
-    record_type: RecordType::Prescription,
-    data_hash: String,      // Hash of encrypted off-chain data
-    ipfs_cid: String,       // IPFS content identifier
-)
-```
-
-### Emergency Access
-```rust
-// Emergency responder accesses patient records
-emergency_access(
-    responder: Pubkey,
-    patient: Pubkey,
-    justification: String,  // "Car accident, unconscious patient"
-)
-```
-
-### Audit Access Logs
-```rust
-// Anyone can verify access history on-chain
-get_audit_logs(
-    patient: Pubkey,
-    from_timestamp: i64,
-    to_timestamp: i64,
-)
-```
-
----
-
-## 🔐 Security Considerations
-
-- **Private Keys**: Patients must securely store their Solana wallet keys
-- **Off-Chain Security**: PostgreSQL must be properly secured and encrypted
-- **Access Control**: All on-chain instructions verify permissions
-- **Emergency Access**: Requires justification and creates permanent audit trail
-- **Data Encryption**: All off-chain medical data is encrypted at rest
-- **Transport Security**: TLS/SSL for all API communications
-
----
-
-## 🗺️ Roadmap
-
-### Phase 1: Core Protocol ✅ COMPLETE
-- ✅ Project initialization
-- ✅ Smart contract development (Anchor/Rust)
-- ✅ Patient registration & management
-- ✅ Medical record CRUD (create/update/delete)
-- ✅ Access grant/revoke system
-- ✅ Access request workflow (request → approve/deny)
-- ✅ Batch access grants
-- ✅ Audit logging system (on-chain)
-- ✅ Comprehensive test suite (17 tests passing)
-
-### Phase 2: Enhanced Features ✅ COMPLETE
-- ✅ Emergency access system (break-glass)
-- ✅ Time-based permissions (expiration support)
-- ⏳ Multi-signature for sensitive records
-- ✅ Comprehensive testing
-
-### Phase 3: Backend Integration ✅ COMPLETE
-- ✅ PostgreSQL integration (schema + migrations)
-- ✅ Encryption key management
-- ✅ REST API development (patients, records, access requests, notifications)
-- ✅ WebSocket for real-time notifications
-- ✅ Guardian system for lifetime records
-- ✅ Birth registration workflow
-
-### Phase 4: Frontend Development
-- ⏳ React web application
-- ⏳ Patient dashboard
-- ⏳ Provider interface
-- ⏳ Wallet integration
-
-### Phase 5: Production Ready
-- ⏳ Security audit
-- ⏳ Performance optimization
-- ⏳ Documentation
-- ⏳ Mainnet deployment
-
-### Phase 6: Advanced Features
-- ⏳ Token economics
-- ⏳ AI-powered insights
-- ⏳ Mobile applications
-- ⏳ Interoperability standards (FHIR)
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these guidelines:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is licensed under the APACHE 2.0 License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 📧 Contact
-
-**Project Maintainer**: StaySafe020  
+**Maintainer**: StaySafe020  
 **Repository**: [https://github.com/StaySafe020/CypherMed](https://github.com/StaySafe020/CypherMed)
 
 ---
 
 ## ⚠️ Disclaimer
 
-This is experimental software for healthcare data management. Always ensure compliance with local healthcare regulations (HIPAA, GDPR, etc.) and conduct thorough security audits before production use. Not intended for production medical use without proper security audits and regulatory approval.
-
----
-
-## 🙏 Acknowledgments
-
-- Solana Foundation for the high-performance blockchain
-- Anchor Framework team for excellent developer tools
-- Open-source healthcare community
-- All contributors and supporters of decentralized healthcare
+This is experimental software. Always ensure compliance with local healthcare regulations (HIPAA, GDPR, NDPR, etc.) and conduct thorough security audits before any production use. Not intended for production medical use without proper regulatory approval.
 
 ---
 
 **Built with ❤️ on Solana**
+

@@ -43,9 +43,12 @@ describe("CypherMed - Medical Records Protocol", () => {
   it("Initializes a patient account", async () => {
     const name = "John Doe";
     const dateOfBirth = new anchor.BN(Math.floor(Date.now() / 1000) - 946080000);
+    const patientIdHash = "a3f8c2e1b7d4f6a9c0e3b5d8f1a4c7e0b2d5f8a1c4e7b0d3f6a9c2e5b8d1f4";
+    const identityHash = "b7d1e9f3a5c8d2e6f0a4b8c1d5e9f3a7b0c4d8e2f6a0b3c7d1e5f9a3b7c0d4";
+    const countryCode = "NG";
 
     await program.methods
-      .initializePatient(name, dateOfBirth, null)
+      .initializePatient(name, dateOfBirth, patientIdHash, identityHash, countryCode, null)
       .accounts({
         patient: patientPda,
         authority: patientKeypair.publicKey,
@@ -60,9 +63,12 @@ describe("CypherMed - Medical Records Protocol", () => {
       patientKeypair.publicKey.toString()
     );
     expect(patientAccount.name).to.equal(name);
+    expect(patientAccount.patientIdHash).to.equal(patientIdHash);
+    expect(patientAccount.identityHash).to.equal(identityHash);
+    expect(patientAccount.countryCode).to.equal(countryCode);
     expect(patientAccount.isActive).to.be.true;
 
-    console.log("✅ Patient registered:", patientPda.toString());
+    console.log("Patient registered:", patientPda.toString());
   });
 
   it("Patient grants access to doctor", async () => {
@@ -98,7 +104,7 @@ describe("CypherMed - Medical Records Protocol", () => {
     const accessGrant = await program.account.accessGrant.fetch(accessGrantPda);
     expect(accessGrant.isActive).to.be.true;
 
-    console.log("✅ Access granted to doctor");
+    console.log("Access granted to doctor");
   });
 
   it("Doctor creates medical record", async () => {
@@ -151,6 +157,6 @@ describe("CypherMed - Medical Records Protocol", () => {
     const record = await program.account.medicalRecord.fetch(recordPda);
     expect(record.isActive).to.be.true;
 
-    console.log("✅ Medical record created with audit trail");
+    console.log("Medical record created with audit trail");
   });
 });

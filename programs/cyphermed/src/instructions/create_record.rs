@@ -18,6 +18,28 @@ pub fn create_record(
         CypherMedError::RecordIdTooLong
     );
 
+    // Validate data_hash length
+    require!(
+        validate_string_length(&data_hash, 64),
+        CypherMedError::DataHashTooLong
+    );
+
+    // Validate storage_cid length if provided
+    if let Some(ref cid) = storage_cid {
+        require!(
+            validate_string_length(cid, 100),
+            CypherMedError::StorageCidTooLong
+        );
+    }
+
+    // Validate metadata length if provided
+    if let Some(ref meta) = metadata {
+        require!(
+            validate_string_length(meta, 200),
+            CypherMedError::MetadataTooLong
+        );
+    }
+
     let patient = &mut ctx.accounts.patient;
     let record = &mut ctx.accounts.record;
     let clock = Clock::get()?;

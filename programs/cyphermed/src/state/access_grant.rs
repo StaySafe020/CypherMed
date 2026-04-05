@@ -53,7 +53,7 @@ impl AccessGrant {
         32 + // patient
         32 + // provider
         (1 + 1) + // role (enum)
-        (4 + 5 * (1 + 1)) + // allowed_record_types (Vec with max 5 types)
+        (4 + 10 * (1 + 1)) + // allowed_record_types (Vec with max 10 types)
         8 + // granted_at
         (1 + 8) + // expires_at
         1 + // is_active
@@ -64,4 +64,6 @@ impl AccessGrant {
         (1 + 32) + // revoked_by
         (1 + 8) + // revoked_at
         1; // bump
+
+    pub const MAX_RECORD_TYPES: usize = 10;
 }

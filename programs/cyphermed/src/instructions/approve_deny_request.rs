@@ -43,7 +43,7 @@ pub fn approve_access_request(
         CypherMedError::NoRecordTypesSpecified
     );
     require!(
-        allowed_record_types.len() <= 7,
+        allowed_record_types.len() <= AccessGrant::MAX_RECORD_TYPES,
         CypherMedError::TooManyRecordTypes
     );
 

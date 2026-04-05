@@ -1,0 +1,1 @@
+Admission/Discharge, Surgery, Radiology, Pathology, Mental Health, Dental, Maternity, Rehabilitation, Referral, Billing, Insurance Claims, Consent Forms, Progress Notes, Nursing Notes, Vital Signs, Procedure Reports, Discharge Summary, Transfer Records

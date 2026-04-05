@@ -110,4 +110,65 @@ pub enum CypherMedError {
     
     #[msg("Patient account is already active")]
     PatientAlreadyActive,
+
+    // Emergency profile errors
+    #[msg("Blood type is too long (max 10 characters)")]
+    BloodTypeTooLong,
+    
+    #[msg("Allergies field is too long (max 200 characters)")]
+    AllergiesTooLong,
+    
+    #[msg("Medications field is too long (max 200 characters)")]
+    MedicationsTooLong,
+    
+    #[msg("Conditions field is too long (max 200 characters)")]
+    ConditionsTooLong,
+    
+    #[msg("Emergency instructions too long (max 300 characters)")]
+    InstructionsTooLong,
+    
+    #[msg("Emergency justification is too long (max 500 characters)")]
+    EmergencyJustificationTooLong,
+
+    // Consent delegation errors
+    #[msg("Cannot delegate consent to yourself")]
+    CannotDelegateToSelf,
+    
+    #[msg("At least one delegate permission must be granted")]
+    NoDelegatePermissions,
+    
+    #[msg("Consent delegation has already been revoked")]
+    DelegationAlreadyRevoked,
+    
+    #[msg("Consent delegation has expired")]
+    DelegationExpired,
+    
+    #[msg("Consent delegation is not active")]
+    DelegationInactive,
+
+    // Additional security validations
+    #[msg("Storage CID is too long (max 100 characters)")]
+    StorageCidTooLong,
+    
+    #[msg("Client info is too long (max 200 characters)")]
+    ClientInfoTooLong,
+
+    // Patient identity errors
+    #[msg("Patient ID hash is required")]
+    PatientIdHashRequired,
+    
+    #[msg("Patient ID hash is too long (max 64 characters)")]
+    PatientIdHashTooLong,
+    
+    #[msg("Identity hash is required")]
+    IdentityHashRequired,
+    
+    #[msg("Identity hash is too long (max 64 characters)")]
+    IdentityHashTooLong,
+    
+    #[msg("Country code is required")]
+    CountryCodeRequired,
+    
+    #[msg("Country code is too long (max 2 characters)")]
+    CountryCodeTooLong,
 }
