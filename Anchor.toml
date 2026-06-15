@@ -8,6 +8,9 @@ skip-lint = false
 [programs.localnet]
 cyphermed = "34LxHEYnuRTy2dif922hNttBbrPNQ6pj7pThyCxwxUrL"
 
+[programs.devnet]
+cyphermed = "34LxHEYnuRTy2dif922hNttBbrPNQ6pj7pThyCxwxUrL"
+
 [registry]
 url = "https://api.apr.dev"
 

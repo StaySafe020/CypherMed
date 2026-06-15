@@ -9,6 +9,7 @@ import auditLogsRouter from "./routes/auditLogs";
 import notificationsRouter from "./routes/notifications";
 import guardiansRouter from "./routes/guardians";
 import birthRegistrationsRouter from "./routes/birthRegistrations";
+import authRouter, { verifyToken } from "./routes/auth";
 import prisma from "./prisma";
 import { initializeSocketIO } from "./utils/socket";
 
@@ -33,13 +34,17 @@ app.get("/health", async (req, res) => {
   }
 });
 
-app.use("/api/patients", patientsRouter);
-app.use("/api/records", recordsRouter);
-app.use("/api/access-requests", accessRequestsRouter);
-app.use("/api/audit-logs", auditLogsRouter);
-app.use("/api/notifications", notificationsRouter);
-app.use("/api/guardians", guardiansRouter);
-app.use("/api/birth-registrations", birthRegistrationsRouter);
+// Auth routes (public)
+app.use("/api/auth", authRouter);
+
+// Protected routes (require JWT token)
+app.use("/api/patients", verifyToken, patientsRouter);
+app.use("/api/records", verifyToken, recordsRouter);
+app.use("/api/access-requests", verifyToken, accessRequestsRouter);
+app.use("/api/audit-logs", verifyToken, auditLogsRouter);
+app.use("/api/notifications", verifyToken, notificationsRouter);
+app.use("/api/guardians", verifyToken, guardiansRouter);
+app.use("/api/birth-registrations", verifyToken, birthRegistrationsRouter);
 
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {

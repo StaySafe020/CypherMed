@@ -1,222 +1,109 @@
 'use client'
 
-import { useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { useWalletModal } from '@solana/wallet-adapter-react-ui'
+import { useWalletAuth } from '@/hooks/useWalletAuth'
+import { useAuthStore } from '@/store/authStore'
 
 export default function LoginPage() {
-  const searchParams = useSearchParams()
-  const [tab, setTab] = useState(searchParams.get('tab') || 'signup')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [wallet, setWallet] = useState('')
-  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+  const { setVisible } = useWalletModal()
+  const wallet = useWallet()
+  const { signAndVerify } = useWalletAuth()
+  const { error, isLoading, walletAddress } = useAuthStore()
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    // API call would go here
-    setTimeout(() => setLoading(false), 1000)
-  }
+  const handleConnectWallet = async () => {
+    if (!wallet.publicKey) {
+      setVisible(true)
+      return
+    }
 
-  const handleSignin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    // API call would go here
-    setTimeout(() => setLoading(false), 1000)
-  }
-
-  const connectWallet = async () => {
-    setLoading(true)
-    // Phantom wallet connection would go here
-    setTimeout(() => setLoading(false), 1000)
+    const success = await signAndVerify()
+    if (success) {
+      router.push('/dashboard')
+    }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-12">
-      {/* Background elements */}
-      <div className="fixed top-0 right-0 w-96 h-96 bg-hospital-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -z-10"></div>
-      <div className="fixed bottom-0 left-0 w-96 h-96 bg-hospital-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -z-10"></div>
-
-      <div className="max-w-md w-full">
-        {/* Header */}
-        <Link href="/">
-          <div className="text-center mb-8 cursor-pointer hover:opacity-80 transition-smooth">
-            <div className="text-4xl font-bold bg-gradient-to-r from-hospital-blue-600 to-hospital-teal-600 bg-clip-text text-transparent">
-              CypherMed
-            </div>
+    <div className="min-h-screen bg-white flex items-center justify-center px-6 py-12">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-12">
+          <div className="flex justify-center mb-4">
+            <Image
+              src="/cyphermed-logo.png"
+              alt="CypherMed Logo"
+              width={120}
+              height={120}
+              priority
+              className="rounded-lg"
+            />
           </div>
-        </Link>
-
-        {/* Tab Navigation */}
-        <div className="glass-sm mb-6 p-1 flex gap-2">
-          <button
-            onClick={() => setTab('signup')}
-            className={`flex-1 py-2 rounded-lg font-semibold transition-smooth ${
-              tab === 'signup'
-                ? 'bg-white/50 text-hospital-blue-700 shadow-md'
-                : 'text-gray-600'
-            }`}
-          >
-            Sign Up
-          </button>
-          <button
-            onClick={() => setTab('signin')}
-            className={`flex-1 py-2 rounded-lg font-semibold transition-smooth ${
-              tab === 'signin'
-                ? 'bg-white/50 text-hospital-blue-700 shadow-md'
-                : 'text-gray-600'
-            }`}
-          >
-            Sign In
-          </button>
+          <h1 className="text-4xl font-bold text-gray-900">CypherMed</h1>
+          <p className="text-gray-600 mt-2">Decentralized medical records on Solana</p>
         </div>
 
-        {/* Sign Up Form */}
-        {tab === 'signup' && (
-          <form onSubmit={handleSignup} className="glass-dark p-8 space-y-6 animate-slide-up">
-            <h2 className="text-2xl font-bold text-gray-800">Create Account</h2>
+        {/* Form */}
+        <div className="border border-gray-200 rounded-xl p-8 bg-white">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-6">Sign In</h2>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="input-glass"
-                required
-              />
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-800">{error}</p>
             </div>
+          )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="input-glass"
-                required
-              />
-              <p className="text-xs text-gray-500 mt-2">
-                Minimum 8 characters with mix of letters and numbers
-              </p>
+          {walletAddress && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800 break-all">Connected: {walletAddress}</p>
             </div>
+          )}
 
+          <p className="text-gray-600 text-sm mb-6">
+            Connect your Solana wallet to sign in securely. No passwords required.
+          </p>
+
+          <button
+            onClick={handleConnectWallet}
+            disabled={isLoading}
+            className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mb-4"
+          >
+            {isLoading
+              ? 'Authenticating...'
+              : wallet.publicKey
+              ? 'Sign & Verify'
+              : 'Connect Solana Wallet'}
+          </button>
+
+          {wallet.publicKey && (
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full btn-primary disabled:opacity-50"
+              onClick={() => wallet.disconnect?.()}
+              className="w-full px-6 py-2 text-gray-700 font-medium border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              {loading ? 'Creating Account...' : 'Create Account'}
+              Disconnect Wallet
             </button>
+          )}
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/20"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 glass-sm">Or continue with wallet</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={connectWallet}
-              disabled={loading}
-              className="w-full btn-secondary disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              <span>🔌</span> Connect Solana Wallet
-            </button>
-          </form>
-        )}
-
-        {/* Sign In Form */}
-        {tab === 'signin' && (
-          <form onSubmit={handleSignin} className="glass-dark p-8 space-y-6 animate-slide-up">
-            <h2 className="text-2xl font-bold text-gray-800">Welcome Back</h2>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email or Wallet
-              </label>
-              <input
-                type="text"
-                value={email || wallet}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com or wallet address"
-                className="input-glass"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="input-glass"
-                required
-              />
-              <Link href="/forgot-password">
-                <p className="text-xs text-hospital-blue-600 mt-2 hover:underline cursor-pointer">
-                  Forgot password?
-                </p>
-              </Link>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full btn-primary disabled:opacity-50"
-            >
-              {loading ? 'Signing In...' : 'Sign In'}
-            </button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/20"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 glass-sm">Or use wallet</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={connectWallet}
-              disabled={loading}
-              className="w-full btn-secondary disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              <span>🔌</span> Connect Solana Wallet
-            </button>
-          </form>
-        )}
-
-        {/* Footer */}
-        <div className="text-center mt-6 text-gray-600 text-sm">
-          <p>
-            {tab === 'signup' ? 'Already have an account? ' : "Don't have an account? "}
-            <button
-              onClick={() => setTab(tab === 'signup' ? 'signin' : 'signup')}
-              className="text-hospital-blue-600 font-semibold hover:underline"
-            >
-              {tab === 'signup' ? 'Sign In' : 'Sign Up'}
-            </button>
+          <p className="text-xs text-gray-500 text-center mt-6">
+            You will be asked to sign a message. No transactions will be made.
           </p>
         </div>
 
-        <div className="text-center mt-8 text-gray-500 text-xs">
-          <p>By continuing, you agree to our Terms and Privacy Policy</p>
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <p className="text-gray-600 text-sm">
+            By signing in, you agree to our
+            <Link href="#" className="text-blue-600 hover:underline mx-1">
+              Terms of Service
+            </Link>
+            and
+            <Link href="#" className="text-blue-600 hover:underline mx-1">
+              Privacy Policy
+            </Link>
+          </p>
         </div>
       </div>
     </div>

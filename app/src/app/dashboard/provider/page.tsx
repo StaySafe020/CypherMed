@@ -7,7 +7,7 @@ import { useUserStore } from '@/store/userStore';
 
 export default function ProviderDashboard() {
   const { connected, publicKey, disconnect } = useWallet();
-  const { profile, clearProfile, isProvider, isVerified } = useUserStore();
+  const { profile, clearProfile } = useUserStore();
   const router = useRouter();
 
   // Redirect if not connected or wrong role
