@@ -1,4 +1,5 @@
 # CypherMed
+https://github.com/StaySafe020/CypherMed/actions/workflows/ci.yml/badge.svg
 
 Decentralized medical records protocol built on Solana. Patients own their data — hospitals, doctors, and insurers access it only with explicit, auditable consent.
 
