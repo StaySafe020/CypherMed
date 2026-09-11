@@ -113,7 +113,8 @@ Licensed under the Apache License 2.0 — see [LICENSE](LICENSE).
 
 ## ⚠️ Disclaimer
 
-This is experimental software. Always ensure compliance with local healthcare regulations (HIPAA, GDPR, NDPR, etc.) and conduct thorough security audits before any production use. Not intended for production medical use without proper regulatory approval.
+This is experimental software. 
+CypherMed gives healthcare organizations a cryptographically auditable way to manage patient-authorized access to medical records.
 
 ---
 
