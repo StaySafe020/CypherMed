@@ -24,6 +24,10 @@ const io = initializeSocketIO(httpServer);
 app.use(cors());
 app.use(express.json());
 
+app.get("/", (_req, res) => {
+  res.json({ service: "CypherMed API", status: "online", health: "/health" });
+});
+
 app.get("/health", async (req, res) => {
   try {
     await prisma.$connect();
