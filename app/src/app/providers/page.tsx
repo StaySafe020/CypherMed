@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useAuthStore } from '@/store/authStore'
-import { getPatientWithGrants, type ProviderGrant } from '@/lib/api'
+import { getPatientWithGrants, revokeAccess, type ProviderGrant } from '@/lib/api'
 
 export default function ProvidersPage() {
   const router = useRouter()
@@ -13,6 +13,7 @@ export default function ProvidersPage() {
   const [providers, setProviders] = useState<ProviderGrant[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [patientId, setPatientId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -22,7 +23,10 @@ export default function ProvidersPage() {
     if (!walletAddress) return
 
     getPatientWithGrants(walletAddress)
-      .then((patient) => setProviders(patient.AccessGrantOffchain || []))
+      .then((patient) => {
+        setPatientId(patient.id)
+        setProviders(patient.AccessGrantOffchain || [])
+      })
       .catch(() => setError('Failed to load provider access grants'))
       .finally(() => setLoading(false))
   }, [isAuthenticated, walletAddress, router])
@@ -82,7 +86,15 @@ export default function ProvidersPage() {
                     <p className="text-sm text-gray-600">{provider.role}</p>
                   </div>
                   <button
-                    disabled
+                    onClick={async () => {
+                      if (!patientId) return
+                      try {
+                        await revokeAccess(patientId, provider.id)
+                        setProviders((current) => current.filter((item) => item.id !== provider.id))
+                      } catch {
+                        setError('Failed to revoke provider access')
+                      }
+                    }}
                     className="px-3 py-1 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition-colors"
                   >
                     Revoke

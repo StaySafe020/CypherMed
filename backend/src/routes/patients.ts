@@ -287,6 +287,10 @@ router.post("/:id/grant-access", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Patient not found" });
     }
 
+    if ((req as any).user?.walletAddress !== patient.wallet) {
+      return res.status(403).json({ error: "Only the patient can grant access" });
+    }
+
     // Valid roles
     const validRoles = ["Doctor", "Hospital", "Insurer", "EmergencyResponder"];
     if (!validRoles.includes(role)) {
@@ -340,6 +344,10 @@ router.delete("/:id/revoke-access/:grantId", async (req: Request, res: Response)
     const patient = await prisma.patient.findUnique({ where: { id } });
     if (!patient) {
       return res.status(404).json({ error: "Patient not found" });
+    }
+
+    if ((req as any).user?.walletAddress !== patient.wallet) {
+      return res.status(403).json({ error: "Only the patient can revoke access" });
     }
 
     const grant = await prisma.accessGrantOffchain.findUnique({ 

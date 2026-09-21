@@ -175,6 +175,9 @@ export const getPatientWithGrants = async (walletAddress: string) => {
   return res.data
 }
 
+export const revokeAccess = (patientId: string, grantId: string) =>
+  api.delete(`/api/patients/${patientId}/revoke-access/${grantId}`)
+
 export const getRecordById = async (recordId: string, accessor?: string) => {
   const query = accessor ? `?accessor=${encodeURIComponent(accessor)}` : ''
   const res = await api.get<MedicalRecord & { patient?: { name?: string; wallet?: string } }>(

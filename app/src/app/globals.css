@@ -9,43 +9,39 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Avenir Next', 'Avenir', 'DM Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: #f5f7f4;
+  color: #17221f;
 }
 
-/* Glassmorphism base styles */
 .glass {
-  @apply backdrop-blur-md bg-white/30 border border-white/20 rounded-2xl;
+  @apply border border-[#dfe8e2] bg-white/80 backdrop-blur-md;
 }
 
 .glass-sm {
-  @apply backdrop-blur-md bg-white/40 border border-white/30 rounded-xl;
+  @apply border border-[#dfe8e2] bg-white/70 backdrop-blur-md;
 }
 
 .glass-dark {
-  @apply backdrop-blur-lg bg-white/10 border border-white/10 rounded-2xl;
+  @apply border border-white/10 bg-[#10251f]/90 backdrop-blur-lg;
 }
 
-/* Smooth transitions */
+.glass-card {
+  @apply border border-[#dfe8e2] bg-white/80 shadow-[0_18px_45px_rgba(27,65,49,0.07)] backdrop-blur-md;
+}
+
 .transition-smooth {
   @apply transition-all duration-300 ease-out;
 }
 
-/* Button base styles */
 .btn-primary {
-  @apply px-6 py-3 rounded-xl font-semibold transition-smooth;
-  @apply bg-gradient-to-r from-hospital-blue-600 to-hospital-teal-600 text-white;
-  @apply hover:from-hospital-blue-700 hover:to-hospital-teal-700;
-  @apply shadow-lg hover:shadow-xl;
+  @apply rounded-xl bg-[#176b52] px-6 py-3 font-semibold text-white transition-smooth hover:bg-[#105541] hover:shadow-lg;
 }
 
 .btn-secondary {
-  @apply px-6 py-3 rounded-xl font-semibold transition-smooth;
-  @apply glass text-hospital-blue-700;
-  @apply hover:bg-white/40;
+  @apply rounded-xl border border-[#c9d9ce] bg-white px-6 py-3 font-semibold text-[#176b52] transition-smooth hover:bg-[#f0f7f2];
 }
 
 .btn-tertiary {
@@ -55,36 +51,32 @@ body {
 
 /* Input styles */
 .input-glass {
-  @apply w-full px-4 py-3 rounded-xl transition-smooth;
-  @apply glass text-gray-800 placeholder-gray-500;
-  @apply focus:outline-none focus:ring-2 focus:ring-hospital-blue-400 focus:bg-white/50;
+  @apply w-full rounded-xl border border-[#c9d9ce] bg-white px-4 py-3 text-gray-800 placeholder-gray-500 transition-smooth focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#75b59b];
 }
 
-/* Animation */
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-float {
-  animation: float 6s ease-in-out infinite;
+.animate-reveal {
+  animation: reveal 0.55s ease-out both;
 }
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.app-grid {
+  background-color: #f5f7f4;
+  background-image: linear-gradient(rgba(23, 107, 82, 0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(23, 107, 82, 0.035) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
-.animate-slide-up {
-  animation: slideUp 0.6s ease-out;
+.sidebar-link {
+  @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-[#6d7d75] transition-colors hover:bg-[#edf5ef] hover:text-[#176b52];
+}
+
+.sidebar-link-active {
+  @apply bg-[#e3f1e7] text-[#176b52];
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-reveal { animation: none; }
 }

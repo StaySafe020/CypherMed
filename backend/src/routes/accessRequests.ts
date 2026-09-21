@@ -7,7 +7,8 @@ const router = Router();
 // Create a new access request
 router.post("/", async (req: Request, res: Response) => {
   try {
-    const { patientId, requester, role, reason, expiresAt } = req.body;
+    const { patientId, role, reason, expiresAt } = req.body;
+    const requester = (req as any).user?.walletAddress;
     
     if (!patientId || !requester || !role) {
       return res.status(400).json({ 
@@ -61,11 +62,24 @@ router.post("/", async (req: Request, res: Response) => {
 router.get("/", async (req: Request, res: Response) => {
   try {
     const { patientId, requester, status } = req.query;
+    const wallet = (req as any).user?.walletAddress;
     const where: any = {};
     
     if (patientId) where.patientId = String(patientId);
     if (requester) where.requester = String(requester);
     if (status) where.status = String(status);
+
+    if (patientId) {
+      const patient = await prisma.patient.findUnique({ where: { id: String(patientId) }, select: { wallet: true } });
+      if (!patient || patient.wallet !== wallet) {
+        where.requester = wallet;
+        delete where.patientId;
+      }
+    } else if (requester) {
+      where.requester = String(requester);
+    } else {
+      where.OR = [{ requester: wallet }, { patient: { wallet } }];
+    }
 
     const requests = await prisma.accessRequest.findMany({
       where,
@@ -119,11 +133,17 @@ router.get("/:id", async (req: Request, res: Response) => {
 router.post("/:id/approve", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { allowedTypes, grantExpiresAt, approvedBy } = req.body;
+    const { allowedTypes, grantExpiresAt } = req.body;
 
     const request = await prisma.accessRequest.findUnique({ where: { id } });
     if (!request) {
       return res.status(404).json({ error: "Access request not found" });
+    }
+
+    const patient = await prisma.patient.findUnique({ where: { id: request.patientId } });
+    if (!patient) return res.status(404).json({ error: "Patient not found" });
+    if ((req as any).user?.walletAddress !== patient.wallet) {
+      return res.status(403).json({ error: "Only the patient can approve access requests" });
     }
 
     if (request.status !== "pending") {
@@ -154,15 +174,11 @@ router.post("/:id/approve", async (req: Request, res: Response) => {
     });
 
     // Get patient info for notification
-    const patient = await prisma.patient.findUnique({ 
-      where: { id: request.patientId } 
-    });
-
     // Create audit event
     await prisma.auditEvent.create({
       data: {
         patientId: request.patientId,
-        accessor: approvedBy || "patient",
+        accessor: patient.wallet,
         action: "approve_access_request",
         success: true,
         reason: `Access request approved for ${request.requester}`,
@@ -199,11 +215,17 @@ router.post("/:id/approve", async (req: Request, res: Response) => {
 router.post("/:id/deny", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { reason, deniedBy } = req.body;
+    const { reason } = req.body;
 
     const request = await prisma.accessRequest.findUnique({ where: { id } });
     if (!request) {
       return res.status(404).json({ error: "Access request not found" });
+    }
+
+    const patient = await prisma.patient.findUnique({ where: { id: request.patientId } });
+    if (!patient) return res.status(404).json({ error: "Patient not found" });
+    if ((req as any).user?.walletAddress !== patient.wallet) {
+      return res.status(403).json({ error: "Only the patient can deny access requests" });
     }
 
     if (request.status !== "pending") {
@@ -222,15 +244,11 @@ router.post("/:id/deny", async (req: Request, res: Response) => {
     });
 
     // Get patient info for notification
-    const patient = await prisma.patient.findUnique({ 
-      where: { id: request.patientId } 
-    });
-
     // Create audit event
     await prisma.auditEvent.create({
       data: {
         patientId: request.patientId,
-        accessor: deniedBy || "patient",
+        accessor: patient.wallet,
         action: "deny_access_request",
         success: true,
         reason: reason || `Access request denied for ${request.requester}`,

@@ -19,6 +19,43 @@ const RECORD_TYPES = [
   "Diagnosis"
 ];
 
+function authenticatedWallet(req: Request): string | null {
+  return (req as any).user?.walletAddress || null;
+}
+
+async function canAccessRecord(req: Request, patientId: string, recordType: string, recordId?: string): Promise<boolean> {
+  const wallet = authenticatedWallet(req);
+  const patient = await prisma.patient.findUnique({ where: { id: patientId }, select: { wallet: true } });
+
+  if (wallet && patient?.wallet === wallet) return true;
+
+  const grant = wallet ? await prisma.accessGrantOffchain.findFirst({
+    where: {
+      patientId,
+      provider: wallet,
+      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+    },
+  }) : null;
+
+  const allowedTypes = grant?.allowedTypes?.split(',').map((type) => type.trim()).filter(Boolean) || [];
+  const allowed = !!grant && (allowedTypes.includes('all') || allowedTypes.includes(recordType));
+
+  if (!allowed && wallet) {
+    await prisma.auditEvent.create({
+      data: {
+        patientId,
+        recordId,
+        accessor: wallet,
+        action: recordId ? 'view' : 'list',
+        success: false,
+        reason: 'No active access grant for this record',
+      },
+    });
+  }
+
+  return allowed;
+}
+
 // Validate record type
 function isValidRecordType(type: string): boolean {
   return RECORD_TYPES.includes(type);
@@ -141,11 +178,16 @@ router.post("/", upload.single("file"), async (req: Request, res: Response) => {
 router.get("/", async (req: Request, res: Response) => {
   try {
     const { patientId, recordType, includeDeleted, limit, offset } = req.query;
+    if (!patientId) return res.status(400).json({ error: "patientId is required" });
+
+    const requestedType = recordType && isValidRecordType(String(recordType)) ? String(recordType) : undefined;
+    if (!(await canAccessRecord(req, String(patientId), requestedType || "all"))) {
+      return res.status(403).json({ error: "You do not have access to this patient's records" });
+    }
+
     const where: any = {};
     if (patientId) where.patientId = String(patientId);
-    if (recordType && isValidRecordType(String(recordType))) {
-      where.recordType = String(recordType);
-    }
+    if (requestedType) where.recordType = requestedType;
 
     const take = limit ? parseInt(String(limit)) : 100;
     const skip = offset ? parseInt(String(offset)) : 0;
@@ -165,6 +207,20 @@ router.get("/", async (req: Request, res: Response) => {
         }
       }
     });
+
+    const wallet = authenticatedWallet(req);
+    const patient = await prisma.patient.findUnique({ where: { id: String(patientId) }, select: { wallet: true } });
+    if (wallet !== patient?.wallet) {
+      const grant = await prisma.accessGrantOffchain.findFirst({
+        where: {
+          patientId: String(patientId),
+          provider: wallet || "",
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        },
+      });
+      const allowedTypes = grant?.allowedTypes?.split(',').map((type) => type.trim()).filter(Boolean) || [];
+      records = records.filter((record) => allowedTypes.includes('all') || allowedTypes.includes(record.recordType));
+    }
 
     if (!includeDeleted || includeDeleted === "false") {
       records = records.filter((r) => {
@@ -212,6 +268,10 @@ router.get("/:id", async (req: Request, res: Response) => {
     });
     
     if (!record) return res.status(404).json({ error: "Record not found" });
+
+    if (!(await canAccessRecord(req, record.patientId, record.recordType, record.id))) {
+      return res.status(403).json({ error: "You do not have access to this record" });
+    }
 
     // Log view audit event
     await prisma.auditEvent.create({
@@ -426,6 +486,10 @@ router.get("/:id/download", async (req: Request, res: Response) => {
     
     const record = await prisma.record.findUnique({ where: { id } });
     if (!record) return res.status(404).json({ error: "Record not found" });
+
+    if (!(await canAccessRecord(req, record.patientId, record.recordType, record.id))) {
+      return res.status(403).json({ error: "You do not have access to this record" });
+    }
     
     if (!record.storagePath) {
       return res.status(404).json({ error: "No file attached to this record" });
@@ -472,6 +536,10 @@ router.get("/type/:recordType", async (req: Request, res: Response) => {
     const where: any = { recordType };
     if (patientId) where.patientId = String(patientId);
 
+    if (!patientId || !(await canAccessRecord(req, String(patientId), recordType))) {
+      return res.status(403).json({ error: "You do not have access to these records" });
+    }
+
     const take = limit ? parseInt(String(limit)) : 100;
     const skip = offset ? parseInt(String(offset)) : 0;
 
@@ -496,6 +564,22 @@ router.get("/type/:recordType", async (req: Request, res: Response) => {
       const m: any = r.metadata as any;
       return !m?.deleted;
     });
+
+    const wallet = authenticatedWallet(req);
+    const patient = await prisma.patient.findUnique({ where: { id: String(patientId) }, select: { wallet: true } });
+    if (wallet !== patient?.wallet) {
+      const grant = await prisma.accessGrantOffchain.findFirst({
+        where: {
+          patientId: String(patientId),
+          provider: wallet || "",
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        },
+      });
+      const allowedTypes = grant?.allowedTypes?.split(',').map((type) => type.trim()).filter(Boolean) || [];
+      if (!allowedTypes.includes('all') && !allowedTypes.includes(recordType)) {
+        return res.status(403).json({ error: "You do not have access to this record type" });
+      }
+    }
 
     res.json({
       recordType,
