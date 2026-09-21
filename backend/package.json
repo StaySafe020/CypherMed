@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@prisma/client": "^4.15.0",
+    "@solana/web3.js": "^1.98.4",
     "@types/bcrypt": "^6.0.0",
     "@types/multer": "^2.0.0",
     "@types/socket.io": "^3.0.1",
