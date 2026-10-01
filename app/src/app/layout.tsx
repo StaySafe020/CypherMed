@@ -3,8 +3,21 @@ import './globals.css'
 import { Providers } from './providers'
 
 export const metadata: Metadata = {
-  title: 'CypherMed - Your Medical Records, Your Control',
-  description: 'Decentralized medical records on Solana. Patient sovereignty, immutable audit trails.',
+  title: 'CypherMed | Privacy-first medical records on Solana',
+  description: 'CypherMed gives patients control over who can access their medical records through encrypted storage and verifiable authorization.',
+  metadataBase: new URL('https://app-three-rho-15.vercel.app'),
+  openGraph: {
+    title: 'CypherMed | Privacy-first medical records on Solana',
+    description: 'Patient-controlled access to encrypted medical records, built on Solana.',
+    url: 'https://app-three-rho-15.vercel.app',
+    siteName: 'CypherMed',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'CypherMed | Privacy-first medical records on Solana',
+    description: 'Patient-controlled access to encrypted medical records, built on Solana.',
+  },
 }
 
 export default function RootLayout({
@@ -14,7 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-gradient-to-br from-hospital-blue-50 via-white to-hospital-teal-50 min-h-screen">
+      <body className="min-h-screen">
         <Providers>
           {children}
         </Providers>
