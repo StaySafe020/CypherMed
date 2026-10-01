@@ -24,7 +24,7 @@ export default function LandingPage() {
   return <main className="landing-page">
     <nav className="landing-nav" aria-label="Main navigation">
       <Link href="/" className="brand"><span className="brand-mark"><ShieldIcon /></span><span>Cypher<span>Med</span></span></Link>
-      <div className="nav-links"><a href="#how-it-works">How it works</a><a href="#architecture">Architecture</a><a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub</a></div>
+      <div className="nav-links"><a href="#how-it-works">How it works</a><a href="#architecture">Architecture</a><Link href="/about">About</Link><a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub</a></div>
       <Link href={DEMO_URL} className="nav-cta">Try the demo <ArrowIcon /></Link>
     </nav>
 
@@ -58,6 +58,6 @@ export default function LandingPage() {
 
     <section className="section open-section"><div className="open-copy"><div className="section-kicker">Open source</div><h2>Built in the open.</h2><p>Explore the application, Solana program, backend, and documentation on GitHub.</p><a className="text-link" href={GITHUB_URL} target="_blank" rel="noreferrer">View CypherMed on GitHub <ArrowIcon /></a></div><div className="repo-card"><span>github.com</span><strong>StaySafe020 / CypherMed</strong><small>Solana · Next.js · Express · PostgreSQL</small><a href={GITHUB_URL} target="_blank" rel="noreferrer">Open repository <ArrowIcon /></a></div></section>
 
-    <footer className="landing-footer"><Link href="/" className="brand"><span className="brand-mark"><ShieldIcon /></span><span>Cypher<span>Med</span></span></Link><p>Privacy-first medical records on Solana.</p><div><a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub</a><Link href={DEMO_URL}>Demo</Link></div></footer>
+    <footer className="landing-footer"><Link href="/" className="brand"><span className="brand-mark"><ShieldIcon /></span><span>Cypher<span>Med</span></span></Link><p>Privacy-first medical records on Solana.</p><div><Link href="/about">About</Link><a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub</a><Link href={DEMO_URL}>Demo</Link></div></footer>
   </main>
 }

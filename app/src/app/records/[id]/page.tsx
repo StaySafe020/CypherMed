@@ -5,17 +5,20 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useAuthStore } from '@/store/authStore'
+import { useUserStore } from '@/store/userStore'
 import { getRecordById, type MedicalRecord } from '@/lib/api'
 
 export default function RecordDetailPage() {
   const router = useRouter()
   const params = useParams()
   const { isAuthenticated, walletAddress } = useAuthStore()
+  const { profile } = useUserStore()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [record, setRecord] = useState<MedicalRecord | null>(null)
 
   const recordId = params.id as string
+  const workspaceHref = profile?.role === 'patient' ? '/dashboard/patient' : '/dashboard/provider'
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -30,16 +33,12 @@ export default function RecordDetailPage() {
       .finally(() => setLoading(false))
   }, [isAuthenticated, walletAddress, router, recordId])
 
-  if (loading) return <div className="text-center py-12">Loading...</div>
-  if (error) return <div className="text-center py-12 text-red-700">{error}</div>
-  if (!record) return <div className="text-center py-12">Record not found</div>
-
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="border-b border-gray-200 sticky top-0 bg-white/95 backdrop-blur-sm z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Link href={workspaceHref} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <Image
               src="/cyphermed-logo.png"
               alt="CypherMed Logo"
@@ -49,13 +48,15 @@ export default function RecordDetailPage() {
             />
             <span className="text-xl font-semibold text-gray-900">CypherMed</span>
           </Link>
-          <Link href="/records">
-            <button className="text-gray-600 hover:text-gray-900 font-medium">← Back</button>
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/records" className="text-sm font-medium text-gray-600 hover:text-gray-900">← Records</Link>
+            <Link href={workspaceHref} className="text-sm font-medium text-blue-700 hover:text-blue-900">Workspace</Link>
+          </div>
         </div>
       </header>
 
       <div className="max-w-2xl mx-auto px-6 py-16">
+        {loading ? <p className="text-center py-12 text-gray-600">Loading record...</p> : error ? <p className="text-center py-12 text-red-700">{error}</p> : !record ? <p className="text-center py-12">Record not found</p> : <>
         {/* Record Header */}
         <div className="border border-gray-200 rounded-lg p-8 mb-8 bg-white">
           <div className="mb-6">
@@ -88,6 +89,7 @@ export default function RecordDetailPage() {
             </button>
           </Link>
         </div>
+        </>}
       </div>
     </div>
   )

@@ -252,3 +252,41 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .button, .nav-cta, .feature-grid article { transition: none; }
 }
+
+.about-page { min-height: 100vh; background: #fbfcff; color: #17243d; }
+.about-nav { display: flex; align-items: center; justify-content: space-between; max-width: 1120px; margin: 0 auto; padding: 27px 28px; border-bottom: 1px solid #e1e7f0; }
+.about-brand { color: #17243d; font-size: 18px; font-weight: 800; letter-spacing: -.04em; }
+.about-brand span { margin-right: 8px; color: #3f5fd4; }
+.about-nav > div { display: flex; align-items: center; gap: 23px; }
+.about-nav a:not(.about-brand), .about-footer a { color: #6c7890; font-size: 12px; font-weight: 700; }
+.about-nav a:not(.about-brand):hover, .about-footer a:hover { color: #3f5fd4; }
+.about-cta { border: 1px solid #cbd5ea; border-radius: 9px; padding: 9px 12px; color: #17243d !important; }
+.about-hero, .about-content, .about-principles, .about-links { max-width: 1120px; margin: 0 auto; padding-right: 28px; padding-left: 28px; }
+.about-hero { padding-top: 110px; padding-bottom: 105px; }
+.about-kicker { color: #3f5fd4; font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+.about-hero h1 { max-width: 760px; margin: 22px 0 24px; font-size: clamp(40px, 6vw, 70px); letter-spacing: -.065em; line-height: 1; }
+.about-hero > p:last-child { max-width: 580px; color: #6c7890; font-size: 17px; line-height: 1.75; }
+.about-content { display: grid; grid-template-columns: repeat(2, 1fr); gap: 80px; padding-top: 65px; padding-bottom: 80px; border-top: 1px solid #e1e7f0; }
+.about-content h2 { max-width: 390px; margin: 18px 0; font-size: 28px; letter-spacing: -.04em; line-height: 1.12; }
+.about-content article > p:last-child { max-width: 440px; color: #6c7890; font-size: 14px; line-height: 1.8; }
+.about-principles { display: grid; grid-template-columns: 1.15fr repeat(3, 1fr); gap: 22px; padding-top: 35px; padding-bottom: 75px; border-top: 1px solid #e1e7f0; }
+.about-principles > .about-kicker { grid-column: 1 / -1; }
+.about-principles > div { padding-top: 18px; border-top: 1px solid #ccd7e8; }
+.about-principles span { color: #8b98ad; font-size: 10px; font-weight: 800; }
+.about-principles strong { display: block; margin-top: 28px; font-size: 14px; }
+.about-principles p:not(.about-kicker) { color: #6c7890; font-size: 12px; line-height: 1.7; }
+.about-links { display: flex; align-items: end; justify-content: space-between; gap: 30px; padding-top: 60px; padding-bottom: 90px; }
+.about-links h2 { margin: 0; font-size: 38px; letter-spacing: -.05em; }
+.about-links > div { display: flex; gap: 24px; }
+.about-links a { color: #3f5fd4; font-size: 13px; font-weight: 800; }
+.about-footer { display: flex; justify-content: space-between; max-width: 1120px; margin: 0 auto; padding: 24px 28px 35px; border-top: 1px solid #e1e7f0; color: #9aa5b8; font-size: 11px; }
+.about-footer > a:first-child { color: #17243d; font-size: 14px; }
+@media (max-width: 700px) {
+  .about-nav > div a:not(.about-cta):not(:last-child), .about-nav > div a[href*="github"] { display: none; }
+  .about-hero { padding-top: 75px; padding-bottom: 75px; }
+  .about-content, .about-principles { grid-template-columns: 1fr; gap: 40px; }
+  .about-principles > .about-kicker { grid-column: auto; }
+  .about-links { display: block; }
+  .about-links > div { display: grid; gap: 15px; margin-top: 28px; }
+  .about-footer { display: grid; gap: 12px; }
+}

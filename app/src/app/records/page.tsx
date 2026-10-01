@@ -5,15 +5,18 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
+import { useUserStore } from '@/store/userStore'
 import { getRecords, type MedicalRecord } from '@/lib/api'
 
 export default function RecordsPage() {
   const router = useRouter()
   const { isAuthenticated, walletAddress } = useAuthStore()
+  const { profile } = useUserStore()
   const [records, setRecords] = useState<MedicalRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filterType, setFilterType] = useState('all')
+  const workspaceHref = profile?.role === 'patient' ? '/dashboard/patient' : '/dashboard/provider'
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -43,11 +46,12 @@ export default function RecordsPage() {
             />
             <span className="text-xl font-semibold text-gray-900">CypherMed</span>
           </Link>
-          <Link href="/records/create">
-            <button className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-sm">
+          <div className="flex items-center gap-3">
+            <Link href={workspaceHref} className="text-sm font-medium text-gray-600 hover:text-gray-900">← Workspace</Link>
+            <Link href="/records/create" className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-sm">
               + New Record
-            </button>
-          </Link>
+            </Link>
+          </div>
         </div>
       </header>
 
