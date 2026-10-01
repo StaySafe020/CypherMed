@@ -5,11 +5,15 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/store/userStore';
+import { useWalletAuth } from '@/hooks/useWalletAuth';
+import { useAuthStore } from '@/store/authStore';
 
 export default function ConnectPage() {
   const { connected, publicKey, disconnect } = useWallet();
   const router = useRouter();
   const { profile, setProfile } = useUserStore();
+  const { signAndVerify } = useWalletAuth();
+  const { isAuthenticated } = useAuthStore();
   
   const [step, setStep] = useState<'connect' | 'role' | 'provider-details'>('connect');
   const [providerType, setProviderType] = useState<'doctor' | 'nurse' | 'hospital_admin' | 'insurer'>('doctor');
@@ -23,7 +27,9 @@ export default function ConnectPage() {
 
   // Check if user already has a profile
   useEffect(() => {
+    const restoreSession = async () => {
     if (connected && publicKey && profile?.walletAddress === publicKey.toBase58()) {
+      if (!isAuthenticated && !(await signAndVerify())) return;
       // Returning user - go to dashboard
       if (profile.role === 'patient') {
         router.push('/dashboard/patient');
@@ -34,9 +40,15 @@ export default function ConnectPage() {
       // New user - show role selection
       setStep('role');
     }
-  }, [connected, publicKey, profile, router]);
+    };
 
-  const handleRoleSelect = (role: 'patient' | 'provider') => {
+    void restoreSession();
+  }, [connected, publicKey, profile, router, isAuthenticated, signAndVerify]);
+
+  const handleRoleSelect = async (role: 'patient' | 'provider') => {
+    const authenticated = await signAndVerify();
+    if (!authenticated) return;
+
     if (role === 'patient') {
       // Create patient profile immediately
       if (publicKey) {

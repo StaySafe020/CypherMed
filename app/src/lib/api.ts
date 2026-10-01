@@ -45,6 +45,7 @@ export interface AccessRequest {
   status: string
   requestedAt: string
   expiresAt: string
+  patient?: { id: string; wallet: string; name: string }
 }
 
 export interface Notification {
