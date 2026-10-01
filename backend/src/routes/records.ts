@@ -1,8 +1,19 @@
 import { Router, Request, Response } from "express";
 import prisma from "../prisma";
-import { upload, getFilePath, fileExists, deleteFile, readFile, getFileMetadata } from "../utils/storage";
+import {
+  upload,
+  getFilePath,
+  fileExists,
+  deleteFile,
+  readFile,
+  getFileMetadata,
+} from "../utils/storage";
 import { encrypt, decrypt, hashData } from "../utils/encryption";
-import { notifyRecordCreated, notifyRecordUpdated, notifyRecordAccessed } from "../utils/notifications";
+import {
+  notifyRecordCreated,
+  notifyRecordUpdated,
+  notifyRecordAccessed,
+} from "../utils/notifications";
 
 const router = Router();
 
@@ -16,29 +27,45 @@ const RECORD_TYPES = [
   "Imaging",
   "Allergy",
   "Surgery",
-  "Diagnosis"
+  "Diagnosis",
 ];
 
 function authenticatedWallet(req: Request): string | null {
   return (req as any).user?.walletAddress || null;
 }
 
-async function canAccessRecord(req: Request, patientId: string, recordType: string, recordId?: string): Promise<boolean> {
+async function canAccessRecord(
+  req: Request,
+  patientId: string,
+  recordType: string,
+  recordId?: string
+): Promise<boolean> {
   const wallet = authenticatedWallet(req);
-  const patient = await prisma.patient.findUnique({ where: { id: patientId }, select: { wallet: true } });
+  const patient = await prisma.patient.findUnique({
+    where: { id: patientId },
+    select: { wallet: true },
+  });
 
   if (wallet && patient?.wallet === wallet) return true;
 
-  const grant = wallet ? await prisma.accessGrantOffchain.findFirst({
-    where: {
-      patientId,
-      provider: wallet,
-      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-    },
-  }) : null;
+  const grant = wallet
+    ? await prisma.accessGrantOffchain.findFirst({
+        where: {
+          patientId,
+          provider: wallet,
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        },
+      })
+    : null;
 
-  const allowedTypes = grant?.allowedTypes?.split(',').map((type) => type.trim()).filter(Boolean) || [];
-  const allowed = !!grant && (allowedTypes.includes('all') || allowedTypes.includes(recordType));
+  const allowedTypes =
+    grant?.allowedTypes
+      ?.split(",")
+      .map((type) => type.trim())
+      .filter(Boolean) || [];
+  const allowed =
+    !!grant &&
+    (allowedTypes.includes("all") || allowedTypes.includes(recordType));
 
   if (!allowed && wallet) {
     await prisma.auditEvent.create({
@@ -46,9 +73,9 @@ async function canAccessRecord(req: Request, patientId: string, recordType: stri
         patientId,
         recordId,
         accessor: wallet,
-        action: recordId ? 'view' : 'list',
+        action: recordId ? "view" : "list",
         success: false,
-        reason: 'No active access grant for this record',
+        reason: "No active access grant for this record",
       },
     });
   }
@@ -64,21 +91,26 @@ function isValidRecordType(type: string): boolean {
 // Create a record with optional file upload and encryption
 router.post("/", upload.single("file"), async (req: Request, res: Response) => {
   try {
-    const { patientId, recordType, data, metadata, accessor, encryptionKey } = req.body;
-    
+    const { patientId, recordType, data, metadata, accessor, encryptionKey } =
+      req.body;
+
     if (!patientId || !recordType) {
-      return res.status(400).json({ error: "patientId and recordType are required" });
+      return res
+        .status(400)
+        .json({ error: "patientId and recordType are required" });
     }
 
     // Validate record type
     if (!isValidRecordType(recordType)) {
-      return res.status(400).json({ 
-        error: `Invalid recordType. Must be one of: ${RECORD_TYPES.join(", ")}` 
+      return res.status(400).json({
+        error: `Invalid recordType. Must be one of: ${RECORD_TYPES.join(", ")}`,
       });
     }
 
     // Verify patient exists
-    const patient = await prisma.patient.findUnique({ where: { id: patientId } });
+    const patient = await prisma.patient.findUnique({
+      where: { id: patientId },
+    });
     if (!patient) {
       return res.status(404).json({ error: "Patient not found" });
     }
@@ -90,7 +122,7 @@ router.post("/", upload.single("file"), async (req: Request, res: Response) => {
     // Handle file upload
     if (req.file) {
       storagePath = req.file.filename;
-      
+
       // If encryption key provided, encrypt the file
       if (encryptionKey) {
         const fileBuffer = readFile(req.file.filename);
@@ -110,7 +142,9 @@ router.post("/", upload.single("file"), async (req: Request, res: Response) => {
         dataHash = hashData(JSON.stringify(data));
       }
     } else {
-      return res.status(400).json({ error: "Either file or data must be provided" });
+      return res
+        .status(400)
+        .json({ error: "Either file or data must be provided" });
     }
 
     // Parse metadata if string
@@ -129,11 +163,13 @@ router.post("/", upload.single("file"), async (req: Request, res: Response) => {
       encrypted: !!encryptionKey,
       encryptedData: encryptedData || undefined,
       originalData: !encryptionKey && data ? data : undefined,
-      fileInfo: req.file ? {
-        originalName: req.file.originalname,
-        mimetype: req.file.mimetype,
-        size: req.file.size,
-      } : undefined,
+      fileInfo: req.file
+        ? {
+            originalName: req.file.originalname,
+            mimetype: req.file.mimetype,
+            size: req.file.size,
+          }
+        : undefined,
     };
 
     const record = await prisma.record.create({
@@ -154,7 +190,7 @@ router.post("/", upload.single("file"), async (req: Request, res: Response) => {
         accessor: accessor ?? "system",
         action: "create",
         success: true,
-        metadata: { 
+        metadata: {
           note: "Record created via API",
           recordType,
           encrypted: !!encryptionKey,
@@ -165,7 +201,12 @@ router.post("/", upload.single("file"), async (req: Request, res: Response) => {
 
     // Send notification
     if (patient && accessor && accessor !== "system") {
-      await notifyRecordCreated(patient.wallet, recordType, accessor, record.id);
+      await notifyRecordCreated(
+        patient.wallet,
+        recordType,
+        accessor,
+        record.id
+      );
     }
 
     res.status(201).json(record);
@@ -178,11 +219,19 @@ router.post("/", upload.single("file"), async (req: Request, res: Response) => {
 router.get("/", async (req: Request, res: Response) => {
   try {
     const { patientId, recordType, includeDeleted, limit, offset } = req.query;
-    if (!patientId) return res.status(400).json({ error: "patientId is required" });
+    if (!patientId)
+      return res.status(400).json({ error: "patientId is required" });
 
-    const requestedType = recordType && isValidRecordType(String(recordType)) ? String(recordType) : undefined;
-    if (!(await canAccessRecord(req, String(patientId), requestedType || "all"))) {
-      return res.status(403).json({ error: "You do not have access to this patient's records" });
+    const requestedType =
+      recordType && isValidRecordType(String(recordType))
+        ? String(recordType)
+        : undefined;
+    if (
+      !(await canAccessRecord(req, String(patientId), requestedType || "all"))
+    ) {
+      return res
+        .status(403)
+        .json({ error: "You do not have access to this patient's records" });
     }
 
     const where: any = {};
@@ -192,8 +241,8 @@ router.get("/", async (req: Request, res: Response) => {
     const take = limit ? parseInt(String(limit)) : 100;
     const skip = offset ? parseInt(String(offset)) : 0;
 
-    let records = await prisma.record.findMany({ 
-      where, 
+    let records = await prisma.record.findMany({
+      where,
       orderBy: { createdAt: "desc" },
       take,
       skip,
@@ -203,13 +252,16 @@ router.get("/", async (req: Request, res: Response) => {
             id: true,
             name: true,
             wallet: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     const wallet = authenticatedWallet(req);
-    const patient = await prisma.patient.findUnique({ where: { id: String(patientId) }, select: { wallet: true } });
+    const patient = await prisma.patient.findUnique({
+      where: { id: String(patientId) },
+      select: { wallet: true },
+    });
     if (wallet !== patient?.wallet) {
       const grant = await prisma.accessGrantOffchain.findFirst({
         where: {
@@ -218,8 +270,16 @@ router.get("/", async (req: Request, res: Response) => {
           OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
       });
-      const allowedTypes = grant?.allowedTypes?.split(',').map((type) => type.trim()).filter(Boolean) || [];
-      records = records.filter((record) => allowedTypes.includes('all') || allowedTypes.includes(record.recordType));
+      const allowedTypes =
+        grant?.allowedTypes
+          ?.split(",")
+          .map((type) => type.trim())
+          .filter(Boolean) || [];
+      records = records.filter(
+        (record) =>
+          allowedTypes.includes("all") ||
+          allowedTypes.includes(record.recordType)
+      );
     }
 
     if (!includeDeleted || includeDeleted === "false") {
@@ -240,7 +300,7 @@ router.get("/", async (req: Request, res: Response) => {
         limit: take,
         offset: skip,
         total: records.length,
-      }
+      },
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message || String(err) });
@@ -252,8 +312,8 @@ router.get("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { accessor, decryptionKey, includeFile } = req.query;
-    
-    const record = await prisma.record.findUnique({ 
+
+    const record = await prisma.record.findUnique({
       where: { id },
       include: {
         patient: {
@@ -262,15 +322,24 @@ router.get("/:id", async (req: Request, res: Response) => {
             name: true,
             wallet: true,
             dob: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
-    
+
     if (!record) return res.status(404).json({ error: "Record not found" });
 
-    if (!(await canAccessRecord(req, record.patientId, record.recordType, record.id))) {
-      return res.status(403).json({ error: "You do not have access to this record" });
+    if (
+      !(await canAccessRecord(
+        req,
+        record.patientId,
+        record.recordType,
+        record.id
+      ))
+    ) {
+      return res
+        .status(403)
+        .json({ error: "You do not have access to this record" });
     }
 
     // Log view audit event
@@ -286,11 +355,15 @@ router.get("/:id", async (req: Request, res: Response) => {
     });
 
     // Send notification if accessed by someone other than system
-    if (accessor && accessor !== "system" && accessor !== record.patient.wallet) {
+    if (
+      accessor &&
+      accessor !== "system" &&
+      accessor !== record.patient.wallet
+    ) {
       await notifyRecordAccessed(
-        record.patient.wallet, 
-        String(accessor), 
-        record.recordType, 
+        record.patient.wallet,
+        String(accessor),
+        record.recordType,
         record.id
       );
     }
@@ -298,19 +371,28 @@ router.get("/:id", async (req: Request, res: Response) => {
     // Handle decryption if key provided
     let decryptedData = null;
     const metadata = record.metadata as any;
-    
+
     if (decryptionKey && metadata?.encrypted && metadata?.encryptedData) {
       try {
-        const decrypted = decrypt(metadata.encryptedData, String(decryptionKey));
+        const decrypted = decrypt(
+          metadata.encryptedData,
+          String(decryptionKey)
+        );
         decryptedData = JSON.parse(decrypted);
       } catch (error) {
-        return res.status(400).json({ error: "Decryption failed - invalid key" });
+        return res
+          .status(400)
+          .json({ error: "Decryption failed - invalid key" });
       }
     }
 
     // Include file data if requested
     let fileData = null;
-    if (includeFile === "true" && record.storagePath && fileExists(record.storagePath)) {
+    if (
+      includeFile === "true" &&
+      record.storagePath &&
+      fileExists(record.storagePath)
+    ) {
       const fileBuffer = readFile(record.storagePath);
       fileData = {
         ...getFileMetadata(record.storagePath),
@@ -329,100 +411,108 @@ router.get("/:id", async (req: Request, res: Response) => {
 });
 
 // Update a record (partial)
-router.patch("/:id", upload.single("file"), async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { data, metadata, accessor, encryptionKey } = req.body;
-    
-    const existing = await prisma.record.findUnique({ where: { id } });
-    if (!existing) return res.status(404).json({ error: "Record not found" });
+router.patch(
+  "/:id",
+  upload.single("file"),
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { data, metadata, accessor, encryptionKey } = req.body;
 
-    let storagePath = existing.storagePath;
-    let dataHash = existing.dataHash;
-    let updatedMetadata = existing.metadata as any || {};
+      const existing = await prisma.record.findUnique({ where: { id } });
+      if (!existing) return res.status(404).json({ error: "Record not found" });
 
-    // Handle new file upload
-    if (req.file) {
-      // Delete old file if exists
-      if (existing.storagePath && fileExists(existing.storagePath)) {
-        deleteFile(existing.storagePath);
+      let storagePath = existing.storagePath;
+      let dataHash = existing.dataHash;
+      let updatedMetadata = (existing.metadata as any) || {};
+
+      // Handle new file upload
+      if (req.file) {
+        // Delete old file if exists
+        if (existing.storagePath && fileExists(existing.storagePath)) {
+          deleteFile(existing.storagePath);
+        }
+
+        storagePath = req.file.filename;
+
+        // Encrypt or hash new file
+        const fileBuffer = readFile(req.file.filename);
+        if (encryptionKey) {
+          const encryptedData = encrypt(
+            fileBuffer.toString("base64"),
+            encryptionKey
+          );
+          dataHash = hashData(encryptedData);
+          updatedMetadata.encryptedData = encryptedData;
+          updatedMetadata.encrypted = true;
+        } else {
+          dataHash = hashData(fileBuffer.toString("base64"));
+        }
+
+        updatedMetadata.fileInfo = {
+          originalName: req.file.originalname,
+          mimetype: req.file.mimetype,
+          size: req.file.size,
+        };
       }
-      
-      storagePath = req.file.filename;
-      
-      // Encrypt or hash new file
-      const fileBuffer = readFile(req.file.filename);
-      if (encryptionKey) {
-        const encryptedData = encrypt(fileBuffer.toString("base64"), encryptionKey);
-        dataHash = hashData(encryptedData);
-        updatedMetadata.encryptedData = encryptedData;
-        updatedMetadata.encrypted = true;
-      } else {
-        dataHash = hashData(fileBuffer.toString("base64"));
+
+      // Handle data update
+      if (data) {
+        if (encryptionKey) {
+          const encryptedData = encrypt(JSON.stringify(data), encryptionKey);
+          dataHash = hashData(encryptedData);
+          updatedMetadata.encryptedData = encryptedData;
+          updatedMetadata.encrypted = true;
+        } else {
+          dataHash = hashData(JSON.stringify(data));
+          updatedMetadata.originalData = data;
+        }
       }
-      
-      updatedMetadata.fileInfo = {
-        originalName: req.file.originalname,
-        mimetype: req.file.mimetype,
-        size: req.file.size,
-      };
-    }
 
-    // Handle data update
-    if (data) {
-      if (encryptionKey) {
-        const encryptedData = encrypt(JSON.stringify(data), encryptionKey);
-        dataHash = hashData(encryptedData);
-        updatedMetadata.encryptedData = encryptedData;
-        updatedMetadata.encrypted = true;
-      } else {
-        dataHash = hashData(JSON.stringify(data));
-        updatedMetadata.originalData = data;
+      // Merge metadata
+      if (metadata) {
+        const newMeta =
+          typeof metadata === "string" ? JSON.parse(metadata) : metadata;
+        updatedMetadata = { ...updatedMetadata, ...newMeta };
       }
-    }
 
-    // Merge metadata
-    if (metadata) {
-      const newMeta = typeof metadata === "string" ? JSON.parse(metadata) : metadata;
-      updatedMetadata = { ...updatedMetadata, ...newMeta };
-    }
-
-    const updated = await prisma.record.update({
-      where: { id },
-      data: {
-        dataHash,
-        storagePath: storagePath ?? existing.storagePath,
-        metadata: updatedMetadata,
-      },
-    });
-
-    await prisma.auditEvent.create({
-      data: {
-        patientId: updated.patientId,
-        recordId: updated.id,
-        accessor: accessor ?? "system",
-        action: "update",
-        success: true,
-        metadata: { 
-          note: "Record updated via API",
-          hasNewFile: !!req.file,
-          encrypted: !!encryptionKey,
+      const updated = await prisma.record.update({
+        where: { id },
+        data: {
+          dataHash,
+          storagePath: storagePath ?? existing.storagePath,
+          metadata: updatedMetadata,
         },
-      },
-    });
+      });
 
-    res.json(updated);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message || String(err) });
+      await prisma.auditEvent.create({
+        data: {
+          patientId: updated.patientId,
+          recordId: updated.id,
+          accessor: accessor ?? "system",
+          action: "update",
+          success: true,
+          metadata: {
+            note: "Record updated via API",
+            hasNewFile: !!req.file,
+            encrypted: !!encryptionKey,
+          },
+        },
+      });
+
+      res.json(updated);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || String(err) });
+    }
   }
-});
+);
 
 // Soft-delete a record by adding metadata.deleted = true
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { accessor, hardDelete } = req.body;
-    
+
     const existing = await prisma.record.findUnique({ where: { id } });
     if (!existing) return res.status(404).json({ error: "Record not found" });
 
@@ -431,9 +521,9 @@ router.delete("/:id", async (req: Request, res: Response) => {
       if (existing.storagePath && fileExists(existing.storagePath)) {
         deleteFile(existing.storagePath);
       }
-      
+
       await prisma.record.delete({ where: { id } });
-      
+
       await prisma.auditEvent.create({
         data: {
           patientId: existing.patientId,
@@ -444,21 +534,21 @@ router.delete("/:id", async (req: Request, res: Response) => {
           metadata: { note: "Record hard-deleted via API" },
         },
       });
-      
+
       return res.json({ ok: true, deleted: "hard" });
     }
 
     // Soft delete - just mark as deleted
-    const newMetadata = { 
-      ...(existing.metadata as any || {}), 
-      deleted: true, 
+    const newMetadata = {
+      ...((existing.metadata as any) || {}),
+      deleted: true,
       deletedAt: new Date().toISOString(),
       deletedBy: accessor ?? "system",
     };
 
-    const updated = await prisma.record.update({ 
-      where: { id }, 
-      data: { metadata: newMetadata } 
+    const updated = await prisma.record.update({
+      where: { id },
+      data: { metadata: newMetadata },
     });
 
     await prisma.auditEvent.create({
@@ -483,18 +573,27 @@ router.get("/:id/download", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { accessor } = req.query;
-    
+
     const record = await prisma.record.findUnique({ where: { id } });
     if (!record) return res.status(404).json({ error: "Record not found" });
 
-    if (!(await canAccessRecord(req, record.patientId, record.recordType, record.id))) {
-      return res.status(403).json({ error: "You do not have access to this record" });
+    if (
+      !(await canAccessRecord(
+        req,
+        record.patientId,
+        record.recordType,
+        record.id
+      ))
+    ) {
+      return res
+        .status(403)
+        .json({ error: "You do not have access to this record" });
     }
-    
+
     if (!record.storagePath) {
       return res.status(404).json({ error: "No file attached to this record" });
     }
-    
+
     if (!fileExists(record.storagePath)) {
       return res.status(404).json({ error: "File not found on server" });
     }
@@ -514,7 +613,7 @@ router.get("/:id/download", async (req: Request, res: Response) => {
     const filePath = getFilePath(record.storagePath);
     const metadata = record.metadata as any;
     const originalName = metadata?.fileInfo?.originalName || record.storagePath;
-    
+
     res.download(filePath, originalName);
   } catch (err: any) {
     res.status(500).json({ error: err.message || String(err) });
@@ -526,18 +625,23 @@ router.get("/type/:recordType", async (req: Request, res: Response) => {
   try {
     const { recordType } = req.params;
     const { patientId, limit, offset } = req.query;
-    
+
     if (!isValidRecordType(recordType)) {
-      return res.status(400).json({ 
-        error: `Invalid recordType. Must be one of: ${RECORD_TYPES.join(", ")}` 
+      return res.status(400).json({
+        error: `Invalid recordType. Must be one of: ${RECORD_TYPES.join(", ")}`,
       });
     }
 
     const where: any = { recordType };
     if (patientId) where.patientId = String(patientId);
 
-    if (!patientId || !(await canAccessRecord(req, String(patientId), recordType))) {
-      return res.status(403).json({ error: "You do not have access to these records" });
+    if (
+      !patientId ||
+      !(await canAccessRecord(req, String(patientId), recordType))
+    ) {
+      return res
+        .status(403)
+        .json({ error: "You do not have access to these records" });
     }
 
     const take = limit ? parseInt(String(limit)) : 100;
@@ -554,9 +658,9 @@ router.get("/type/:recordType", async (req: Request, res: Response) => {
             id: true,
             name: true,
             wallet: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     // Filter out soft-deleted records
@@ -566,7 +670,10 @@ router.get("/type/:recordType", async (req: Request, res: Response) => {
     });
 
     const wallet = authenticatedWallet(req);
-    const patient = await prisma.patient.findUnique({ where: { id: String(patientId) }, select: { wallet: true } });
+    const patient = await prisma.patient.findUnique({
+      where: { id: String(patientId) },
+      select: { wallet: true },
+    });
     if (wallet !== patient?.wallet) {
       const grant = await prisma.accessGrantOffchain.findFirst({
         where: {
@@ -575,9 +682,15 @@ router.get("/type/:recordType", async (req: Request, res: Response) => {
           OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
         },
       });
-      const allowedTypes = grant?.allowedTypes?.split(',').map((type) => type.trim()).filter(Boolean) || [];
-      if (!allowedTypes.includes('all') && !allowedTypes.includes(recordType)) {
-        return res.status(403).json({ error: "You do not have access to this record type" });
+      const allowedTypes =
+        grant?.allowedTypes
+          ?.split(",")
+          .map((type) => type.trim())
+          .filter(Boolean) || [];
+      if (!allowedTypes.includes("all") && !allowedTypes.includes(recordType)) {
+        return res
+          .status(403)
+          .json({ error: "You do not have access to this record type" });
       }
     }
 
@@ -588,7 +701,7 @@ router.get("/type/:recordType", async (req: Request, res: Response) => {
         limit: take,
         offset: skip,
         total: activeRecords.length,
-      }
+      },
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message || String(err) });

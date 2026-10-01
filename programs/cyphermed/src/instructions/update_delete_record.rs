@@ -1,6 +1,6 @@
-use anchor_lang::prelude::*;
-use crate::state::*;
 use crate::errors::CypherMedError;
+use crate::state::*;
+use anchor_lang::prelude::*;
 
 /// Update an existing medical record
 pub fn update_record(
@@ -23,9 +23,12 @@ pub fn update_record(
 
     // If not patient or creator, check for modify permission via access grant
     if !is_patient && !is_creator {
-        let access_grant = ctx.accounts.access_grant.as_ref()
+        let access_grant = ctx
+            .accounts
+            .access_grant
+            .as_ref()
             .ok_or(CypherMedError::AccessDenied)?;
-        
+
         require!(access_grant.is_active, CypherMedError::AccessGrantRevoked);
         require!(
             !crate::utils::is_grant_expired(access_grant.expires_at, clock.unix_timestamp),
@@ -82,7 +85,7 @@ pub fn update_record(
         ctx.accounts.updater.key(),
         update_note
     );
-    
+
     emit!(RecordUpdatedEvent {
         record: record.key(),
         patient: patient.key(),
@@ -90,15 +93,12 @@ pub fn update_record(
         update_note,
         timestamp: clock.unix_timestamp,
     });
-    
+
     Ok(())
 }
 
 /// Soft delete a medical record
-pub fn delete_record(
-    ctx: Context<DeleteRecord>,
-    deletion_reason: String,
-) -> Result<()> {
+pub fn delete_record(ctx: Context<DeleteRecord>, deletion_reason: String) -> Result<()> {
     let patient = &ctx.accounts.patient;
     let record = &mut ctx.accounts.record;
     let clock = Clock::get()?;
@@ -113,14 +113,17 @@ pub fn delete_record(
     let is_patient = ctx.accounts.deleter.key() == patient.authority;
     let is_creator = ctx.accounts.deleter.key() == record.created_by;
 
-    require!(
-        is_patient || is_creator,
-        CypherMedError::Unauthorized
-    );
+    require!(is_patient || is_creator, CypherMedError::Unauthorized);
 
     // Validate deletion reason
-    require!(!deletion_reason.is_empty(), CypherMedError::DeletionReasonRequired);
-    require!(deletion_reason.len() <= 300, CypherMedError::DeletionReasonTooLong);
+    require!(
+        !deletion_reason.is_empty(),
+        CypherMedError::DeletionReasonRequired
+    );
+    require!(
+        deletion_reason.len() <= 300,
+        CypherMedError::DeletionReasonTooLong
+    );
 
     // Soft delete - mark as inactive
     record.is_active = false;
@@ -131,7 +134,11 @@ pub fn delete_record(
     audit.patient = patient.key();
     audit.record = record.key();
     audit.accessor = ctx.accounts.deleter.key();
-    audit.accessor_role = if is_patient { Role::Patient } else { Role::Doctor };
+    audit.accessor_role = if is_patient {
+        Role::Patient
+    } else {
+        Role::Doctor
+    };
     audit.action = AccessAction::Delete;
     audit.record_type = record.record_type;
     audit.timestamp = clock.unix_timestamp;
@@ -149,7 +156,7 @@ pub fn delete_record(
         ctx.accounts.deleter.key(),
         deletion_reason
     );
-    
+
     emit!(RecordDeletedEvent {
         record: record.key(),
         patient: patient.key(),
@@ -157,7 +164,7 @@ pub fn delete_record(
         reason: deletion_reason,
         timestamp: clock.unix_timestamp,
     });
-    
+
     Ok(())
 }
 

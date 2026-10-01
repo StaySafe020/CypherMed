@@ -1,5 +1,5 @@
-import nacl from 'tweetnacl';
-import { PublicKey } from '@solana/web3.js';
+import nacl from "tweetnacl";
+import { PublicKey } from "@solana/web3.js";
 
 /**
  * Verify a Solana wallet signature
@@ -15,12 +15,12 @@ export function verifySignature(
 ): boolean {
   try {
     // Decode signature from base64
-    const signatureBytes = Buffer.from(signature, 'base64');
-    
+    const signatureBytes = Buffer.from(signature, "base64");
+
     // Get public key from wallet address
     const publicKey = new PublicKey(walletAddress);
     const publicKeyBytes = publicKey.toBytes();
-    
+
     // Verify signature
     return nacl.sign.detached.verify(
       Buffer.from(message),
@@ -28,7 +28,7 @@ export function verifySignature(
       publicKeyBytes
     );
   } catch (err) {
-    console.error('Signature verification error:', err);
+    console.error("Signature verification error:", err);
     return false;
   }
 }

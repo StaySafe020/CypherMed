@@ -185,35 +185,38 @@ router.get("/certificate/:certId", async (req: Request, res: Response) => {
 });
 
 // Update patient wallet when they get their own wallet (e.g., at age 13+)
-router.patch("/:patientId/assign-wallet", async (req: Request, res: Response) => {
-  try {
-    const { patientId } = req.params;
-    const { wallet } = req.body;
+router.patch(
+  "/:patientId/assign-wallet",
+  async (req: Request, res: Response) => {
+    try {
+      const { patientId } = req.params;
+      const { wallet } = req.body;
 
-    if (!wallet) {
-      return res.status(400).json({ error: "wallet is required" });
+      if (!wallet) {
+        return res.status(400).json({ error: "wallet is required" });
+      }
+
+      const patient = await prisma.patient.update({
+        where: { id: patientId },
+        data: { wallet },
+      });
+
+      await prisma.auditEvent.create({
+        data: {
+          patientId,
+          accessor: wallet,
+          action: "wallet_assigned",
+          success: true,
+          reason: "Patient wallet assigned",
+          metadata: { newWallet: wallet },
+        },
+      });
+
+      res.json(patient);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || String(err) });
     }
-
-    const patient = await prisma.patient.update({
-      where: { id: patientId },
-      data: { wallet },
-    });
-
-    await prisma.auditEvent.create({
-      data: {
-        patientId,
-        accessor: wallet,
-        action: "wallet_assigned",
-        success: true,
-        reason: "Patient wallet assigned",
-        metadata: { newWallet: wallet },
-      },
-    });
-
-    res.json(patient);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message || String(err) });
   }
-});
+);
 
 export default router;

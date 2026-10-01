@@ -1,8 +1,8 @@
 {
   "license": "ISC",
   "scripts": {
-    "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
-    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
+    "lint:fix": "prettier \"app/*.js\" \"app/src/**/*.{js,ts,tsx}\" \"backend/**/*.{js,ts,tsx}\" \"migrations/**/*.{js,ts,tsx}\" \"tests/**/*.{js,ts,tsx}\" --write",
+    "lint": "prettier \"app/*.js\" \"app/src/**/*.{js,ts,tsx}\" \"backend/**/*.{js,ts,tsx}\" \"migrations/**/*.{js,ts,tsx}\" \"tests/**/*.{js,ts,tsx}\" --check"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1"

@@ -6,7 +6,8 @@ CypherMed is a Solana-based medical records MVP focused on patient-controlled, a
 
 ## Links
 
-- **Live app:** https://app-three-rho-15.vercel.app/connect
+- **Live app:** https://cyphermed.vercel.app
+- **Wallet connect:** https://cyphermed.vercel.app/connect
 - **API:** https://cyphermed.onrender.com/
 - **API health:** https://cyphermed.onrender.com/health
 - **Technical docs:** [CYPHERMED_DOCS.md](CYPHERMED_DOCS.md)

@@ -1,6 +1,6 @@
-use anchor_lang::prelude::*;
-use crate::state::*;
 use crate::errors::CypherMedError;
+use crate::state::*;
+use anchor_lang::prelude::*;
 
 /// Delegate consent management to a guardian/representative
 /// Used for minors (parents manage until age 18) or incapacitated patients
@@ -30,8 +30,11 @@ pub fn delegate_consent(
 
     // At least one permission must be granted
     require!(
-        can_grant_access || can_revoke_access || can_approve_requests || 
-        can_create_records || can_view_records,
+        can_grant_access
+            || can_revoke_access
+            || can_approve_requests
+            || can_create_records
+            || can_view_records,
         CypherMedError::NoDelegatePermissions
     );
 
@@ -45,10 +48,7 @@ pub fn delegate_consent(
 
     // Validate reason length if provided
     if let Some(ref r) = reason {
-        require!(
-            r.len() <= 200,
-            CypherMedError::ReasonTooLong
-        );
+        require!(r.len() <= 200, CypherMedError::ReasonTooLong);
     }
 
     delegate_account.patient = patient.key();
@@ -89,9 +89,7 @@ pub fn delegate_consent(
 }
 
 /// Revoke a consent delegation
-pub fn revoke_delegation(
-    ctx: Context<RevokeDelegation>,
-) -> Result<()> {
+pub fn revoke_delegation(ctx: Context<RevokeDelegation>) -> Result<()> {
     let patient = &mut ctx.accounts.patient;
     let delegate_account = &mut ctx.accounts.consent_delegate;
     let clock = Clock::get()?;
@@ -171,8 +169,8 @@ pub struct RevokeDelegation<'info> {
     #[account(
         mut,
         seeds = [
-            b"consent_delegate", 
-            patient.key().as_ref(), 
+            b"consent_delegate",
+            patient.key().as_ref(),
             consent_delegate.delegate.as_ref()
         ],
         bump = consent_delegate.bump,

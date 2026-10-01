@@ -1,6 +1,6 @@
-use anchor_lang::prelude::*;
-use crate::state::*;
 use crate::errors::CypherMedError;
+use crate::state::*;
+use anchor_lang::prelude::*;
 
 /// Create or initialize an emergency profile for a patient
 /// This stores critical medical info accessible during break-glass emergencies
@@ -74,10 +74,7 @@ pub fn create_emergency_profile(
     profile.updated_at = clock.unix_timestamp;
     profile.bump = ctx.bumps.emergency_profile;
 
-    msg!(
-        "Emergency profile created for patient: {}",
-        patient.key()
-    );
+    msg!("Emergency profile created for patient: {}", patient.key());
 
     emit!(EmergencyProfileCreatedEvent {
         patient: patient.key(),
@@ -165,10 +162,7 @@ pub fn update_emergency_profile(
 
     profile.updated_at = clock.unix_timestamp;
 
-    msg!(
-        "Emergency profile updated for patient: {}",
-        patient.key()
-    );
+    msg!("Emergency profile updated for patient: {}", patient.key());
 
     emit!(EmergencyProfileUpdatedEvent {
         patient: patient.key(),

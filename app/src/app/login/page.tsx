@@ -1,31 +1,31 @@
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useWallet } from '@solana/wallet-adapter-react'
-import { useWalletModal } from '@solana/wallet-adapter-react-ui'
-import { useWalletAuth } from '@/hooks/useWalletAuth'
-import { useAuthStore } from '@/store/authStore'
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { useWalletAuth } from "@/hooks/useWalletAuth";
+import { useAuthStore } from "@/store/authStore";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const { setVisible } = useWalletModal()
-  const wallet = useWallet()
-  const { signAndVerify } = useWalletAuth()
-  const { error, isLoading, walletAddress } = useAuthStore()
+  const router = useRouter();
+  const { setVisible } = useWalletModal();
+  const wallet = useWallet();
+  const { signAndVerify } = useWalletAuth();
+  const { error, isLoading, walletAddress } = useAuthStore();
 
   const handleConnectWallet = async () => {
     if (!wallet.publicKey) {
-      setVisible(true)
-      return
+      setVisible(true);
+      return;
     }
 
-    const success = await signAndVerify()
+    const success = await signAndVerify();
     if (success) {
-      router.push('/dashboard')
+      router.push("/dashboard");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6 py-12">
@@ -43,7 +43,9 @@ export default function LoginPage() {
             />
           </div>
           <h1 className="text-4xl font-bold text-gray-900">CypherMed</h1>
-          <p className="text-gray-600 mt-2">Decentralized medical records on Solana</p>
+          <p className="text-gray-600 mt-2">
+            Decentralized medical records on Solana
+          </p>
         </div>
 
         {/* Form */}
@@ -58,12 +60,15 @@ export default function LoginPage() {
 
           {walletAddress && (
             <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-sm text-green-800 break-all">Connected: {walletAddress}</p>
+              <p className="text-sm text-green-800 break-all">
+                Connected: {walletAddress}
+              </p>
             </div>
           )}
 
           <p className="text-gray-600 text-sm mb-6">
-            Connect your Solana wallet to sign in securely. No passwords required.
+            Connect your Solana wallet to sign in securely. No passwords
+            required.
           </p>
 
           <button
@@ -72,10 +77,10 @@ export default function LoginPage() {
             className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mb-4"
           >
             {isLoading
-              ? 'Authenticating...'
+              ? "Authenticating..."
               : wallet.publicKey
-              ? 'Sign & Verify'
-              : 'Connect Solana Wallet'}
+              ? "Sign & Verify"
+              : "Connect Solana Wallet"}
           </button>
 
           {wallet.publicKey && (
@@ -107,5 +112,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

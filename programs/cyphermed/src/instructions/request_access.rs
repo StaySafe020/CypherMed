@@ -1,6 +1,6 @@
-use anchor_lang::prelude::*;
-use crate::state::*;
 use crate::errors::CypherMedError;
+use crate::state::*;
+use anchor_lang::prelude::*;
 
 /// Request access to patient records
 pub fn request_access(
@@ -24,10 +24,7 @@ pub fn request_access(
 
     // Validate reason length if provided
     if let Some(ref r) = reason {
-        require!(
-            r.len() <= 200,
-            CypherMedError::ReasonTooLong
-        );
+        require!(r.len() <= 200, CypherMedError::ReasonTooLong);
     }
 
     // Calculate expiration (custom or default 2 days)
@@ -64,16 +61,16 @@ pub fn request_access(
         ctx.accounts.requester.key(),
         patient.key()
     );
-    
+
     // Emit event for notification system
     emit!(AccessRequestCreatedEvent {
         request: access_request.key(),
         patient: patient.key(),
         requester: ctx.accounts.requester.key(),
-        reason: reason,
+        reason,
         expires_at,
     });
-    
+
     Ok(())
 }
 

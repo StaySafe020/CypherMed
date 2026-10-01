@@ -1,7 +1,7 @@
-use anchor_lang::prelude::*;
-use crate::state::*;
 use crate::errors::CypherMedError;
+use crate::state::*;
 use crate::utils::*;
+use anchor_lang::prelude::*;
 
 /// Initialize a new patient account with privacy-preserving identifiers
 pub fn initialize_patient(
@@ -67,7 +67,7 @@ pub fn initialize_patient(
     patient.bump = ctx.bumps.patient;
 
     msg!("Patient account initialized: {}", patient.patient_id_hash);
-    
+
     Ok(())
 }
 

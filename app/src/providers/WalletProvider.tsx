@@ -1,13 +1,16 @@
-'use client';
+"use client";
 
-import { FC, ReactNode, useMemo } from 'react';
-import { ConnectionProvider, WalletProvider as SolanaWalletProvider } from '@solana/wallet-adapter-react';
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
-import { SolflareWalletAdapter } from '@solana/wallet-adapter-solflare';
+import { FC, ReactNode, useMemo } from "react";
+import {
+  ConnectionProvider,
+  WalletProvider as SolanaWalletProvider,
+} from "@solana/wallet-adapter-react";
+import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
+import { PhantomWalletAdapter } from "@solana/wallet-adapter-phantom";
+import { SolflareWalletAdapter } from "@solana/wallet-adapter-solflare";
 
 // Import wallet adapter CSS
-import '@solana/wallet-adapter-react-ui/styles.css';
+import "@solana/wallet-adapter-react-ui/styles.css";
 
 interface Props {
   children: ReactNode;
@@ -28,24 +31,21 @@ export const WalletProvider: FC<Props> = ({ children }) => {
       return HELIUS_RPC.devnet; // Switch to mainnet for production
     }
     // Fallback to public RPC (not recommended for production)
-    console.warn('NEXT_PUBLIC_HELIUS_API_KEY not set. Using public RPC (rate limited).');
-    return 'https://api.devnet.solana.com';
+    console.warn(
+      "NEXT_PUBLIC_HELIUS_API_KEY not set. Using public RPC (rate limited)."
+    );
+    return "https://api.devnet.solana.com";
   }, []);
 
   const wallets = useMemo(
-    () => [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
-    ],
+    () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
     []
   );
 
   return (
     <ConnectionProvider endpoint={endpoint}>
       <SolanaWalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          {children}
-        </WalletModalProvider>
+        <WalletModalProvider>{children}</WalletModalProvider>
       </SolanaWalletProvider>
     </ConnectionProvider>
   );

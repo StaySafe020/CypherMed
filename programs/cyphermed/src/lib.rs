@@ -1,10 +1,12 @@
+#![allow(clippy::too_many_arguments)]
+
 use anchor_lang::prelude::*;
 
 declare_id!("34LxHEYnuRTy2dif922hNttBbrPNQ6pj7pThyCxwxUrL");
 
-pub mod state;
-pub mod instructions;
 pub mod errors;
+pub mod instructions;
+pub mod state;
 pub mod utils;
 
 use instructions::*;
@@ -24,7 +26,15 @@ pub mod cyphermed {
         country_code: String,
         emergency_contact: Option<Pubkey>,
     ) -> Result<()> {
-        instructions::initialize_patient(ctx, name, date_of_birth, patient_id_hash, identity_hash, country_code, emergency_contact)
+        instructions::initialize_patient(
+            ctx,
+            name,
+            date_of_birth,
+            patient_id_hash,
+            identity_hash,
+            country_code,
+            emergency_contact,
+        )
     }
 
     /// Create a new medical record
@@ -36,7 +46,14 @@ pub mod cyphermed {
         storage_cid: Option<String>,
         metadata: Option<String>,
     ) -> Result<()> {
-        instructions::create_record(ctx, record_id, record_type, data_hash, storage_cid, metadata)
+        instructions::create_record(
+            ctx,
+            record_id,
+            record_type,
+            data_hash,
+            storage_cid,
+            metadata,
+        )
     }
 
     /// Grant access to a healthcare provider
@@ -68,10 +85,7 @@ pub mod cyphermed {
     }
 
     /// Access (view) a medical record
-    pub fn access_record(
-        ctx: Context<AccessRecord>,
-        client_info: Option<String>,
-    ) -> Result<()> {
+    pub fn access_record(ctx: Context<AccessRecord>, client_info: Option<String>) -> Result<()> {
         instructions::access_record(ctx, client_info)
     }
 
@@ -132,10 +146,7 @@ pub mod cyphermed {
     }
 
     /// Soft delete a medical record
-    pub fn delete_record(
-        ctx: Context<DeleteRecord>,
-        deletion_reason: String,
-    ) -> Result<()> {
+    pub fn delete_record(ctx: Context<DeleteRecord>, deletion_reason: String) -> Result<()> {
         instructions::delete_record(ctx, deletion_reason)
     }
 

@@ -1,42 +1,49 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useAuthStore } from '@/store/authStore'
-import { getPatientWithGrants, revokeAccess, type ProviderGrant } from '@/lib/api'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { useAuthStore } from "@/store/authStore";
+import {
+  getPatientWithGrants,
+  revokeAccess,
+  type ProviderGrant,
+} from "@/lib/api";
 
 export default function ProvidersPage() {
-  const router = useRouter()
-  const { isAuthenticated, walletAddress } = useAuthStore()
-  const [providers, setProviders] = useState<ProviderGrant[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [patientId, setPatientId] = useState<string | null>(null)
+  const router = useRouter();
+  const { isAuthenticated, walletAddress } = useAuthStore();
+  const [providers, setProviders] = useState<ProviderGrant[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [patientId, setPatientId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
-      router.push('/login')
-      return
+      router.push("/login");
+      return;
     }
-    if (!walletAddress) return
+    if (!walletAddress) return;
 
     getPatientWithGrants(walletAddress)
       .then((patient) => {
-        setPatientId(patient.id)
-        setProviders(patient.AccessGrantOffchain || [])
+        setPatientId(patient.id);
+        setProviders(patient.AccessGrantOffchain || []);
       })
-      .catch(() => setError('Failed to load provider access grants'))
-      .finally(() => setLoading(false))
-  }, [isAuthenticated, walletAddress, router])
+      .catch(() => setError("Failed to load provider access grants"))
+      .finally(() => setLoading(false));
+  }, [isAuthenticated, walletAddress, router]);
 
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="border-b border-gray-200 sticky top-0 bg-white/95 backdrop-blur-sm z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
             <Image
               src="/cyphermed-logo.png"
               alt="CypherMed Logo"
@@ -44,7 +51,9 @@ export default function ProvidersPage() {
               height={32}
               className="rounded"
             />
-            <span className="text-xl font-semibold text-gray-900">CypherMed</span>
+            <span className="text-xl font-semibold text-gray-900">
+              CypherMed
+            </span>
           </Link>
         </div>
       </header>
@@ -52,8 +61,12 @@ export default function ProvidersPage() {
       <div className="max-w-4xl mx-auto px-6 py-16">
         {/* Page Header */}
         <div className="mb-8">
-          <h2 className="text-3xl font-semibold text-gray-900">Manage Provider Access</h2>
-          <p className="text-gray-600 mt-1">View and control provider permissions</p>
+          <h2 className="text-3xl font-semibold text-gray-900">
+            Manage Provider Access
+          </h2>
+          <p className="text-gray-600 mt-1">
+            View and control provider permissions
+          </p>
         </div>
 
         {error && (
@@ -79,20 +92,27 @@ export default function ProvidersPage() {
         ) : (
           <div className="space-y-4">
             {providers.map((provider: any) => (
-              <div key={provider.id} className="border border-gray-200 rounded-lg p-6 bg-white hover:shadow-md transition-all">
+              <div
+                key={provider.id}
+                className="border border-gray-200 rounded-lg p-6 bg-white hover:shadow-md transition-all"
+              >
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="font-semibold text-gray-900">{provider.provider}</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      {provider.provider}
+                    </h3>
                     <p className="text-sm text-gray-600">{provider.role}</p>
                   </div>
                   <button
                     onClick={async () => {
-                      if (!patientId) return
+                      if (!patientId) return;
                       try {
-                        await revokeAccess(patientId, provider.id)
-                        setProviders((current) => current.filter((item) => item.id !== provider.id))
+                        await revokeAccess(patientId, provider.id);
+                        setProviders((current) =>
+                          current.filter((item) => item.id !== provider.id)
+                        );
                       } catch {
-                        setError('Failed to revoke provider access')
+                        setError("Failed to revoke provider access");
                       }
                     }}
                     className="px-3 py-1 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition-colors"
@@ -102,7 +122,9 @@ export default function ProvidersPage() {
                 </div>
 
                 <div className="text-sm text-gray-600">
-                  <p>Granted: {new Date(provider.grantedAt).toLocaleDateString()}</p>
+                  <p>
+                    Granted: {new Date(provider.grantedAt).toLocaleDateString()}
+                  </p>
                   <p>Allowed Types: {provider.allowedTypes}</p>
                 </div>
               </div>
@@ -111,5 +133,5 @@ export default function ProvidersPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

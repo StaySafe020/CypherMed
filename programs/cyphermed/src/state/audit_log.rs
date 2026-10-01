@@ -1,48 +1,48 @@
+use super::{RecordType, Role};
 use anchor_lang::prelude::*;
-use super::{Role, RecordType};
 
 /// Audit Log Entry - immutable record of all access events
 #[account]
 pub struct AuditLog {
     /// Patient whose record was accessed
     pub patient: Pubkey,
-    
+
     /// The medical record that was accessed
     pub record: Pubkey,
-    
+
     /// Who attempted/performed the access
     pub accessor: Pubkey,
-    
+
     /// Role of the accessor
     pub accessor_role: Role,
-    
+
     /// Type of action performed
     pub action: AccessAction,
-    
+
     /// Type of record accessed
     pub record_type: RecordType,
-    
+
     /// Timestamp of the access
     pub timestamp: i64,
-    
+
     /// Was the access attempt successful?
     pub success: bool,
-    
+
     /// Reason for failure (if unsuccessful)
     pub failure_reason: Option<String>,
-    
+
     /// Was this an emergency access?
     pub is_emergency: bool,
-    
+
     /// Emergency justification (if is_emergency = true)
     pub emergency_justification: Option<String>,
-    
+
     /// IP address or client identifier (optional)
     pub client_info: Option<String>,
-    
+
     /// Additional context
     pub metadata: Option<String>,
-    
+
     /// Bump seed for PDA
     pub bump: u8,
 }

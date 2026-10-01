@@ -1,9 +1,9 @@
-import { useCallback } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { useAuthStore } from '@/store/authStore';
-import axios from 'axios';
+import { useCallback } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useAuthStore } from "@/store/authStore";
+import axios from "axios";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export function useWalletAuth() {
   const wallet = useWallet();
@@ -11,7 +11,7 @@ export function useWalletAuth() {
 
   const signAndVerify = useCallback(async () => {
     if (!wallet.publicKey || !wallet.signMessage) {
-      setError('Wallet not connected');
+      setError("Wallet not connected");
       return false;
     }
 
@@ -20,14 +20,14 @@ export function useWalletAuth() {
       setError(null);
 
       const address = wallet.publicKey.toBase58();
-      
+
       // 1. Get a nonce from backend
       const nonceRes = await axios.post(`${API_BASE_URL}/api/auth/nonce`, {
         walletAddress: address,
       });
 
       if (!nonceRes.data.nonce) {
-        throw new Error('No nonce received from server');
+        throw new Error("No nonce received from server");
       }
 
       const nonce = nonceRes.data.nonce;
@@ -35,9 +35,9 @@ export function useWalletAuth() {
       // 2. Sign the nonce with wallet
       const message = new TextEncoder().encode(nonce);
       const signedMessage = await wallet.signMessage(message);
-      
+
       if (!signedMessage) {
-        throw new Error('Failed to sign message');
+        throw new Error("Failed to sign message");
       }
 
       // 3. Verify signature on backend
@@ -46,7 +46,7 @@ export function useWalletAuth() {
         {
           walletAddress: address,
           nonce,
-          signature: Buffer.from(signedMessage).toString('base64'),
+          signature: Buffer.from(signedMessage).toString("base64"),
         }
       );
 
@@ -56,10 +56,11 @@ export function useWalletAuth() {
         setLoading(false);
         return true;
       } else {
-        throw new Error('Verification failed');
+        throw new Error("Verification failed");
       }
     } catch (err: any) {
-      const errorMsg = err.response?.data?.error || err.message || 'Authentication failed';
+      const errorMsg =
+        err.response?.data?.error || err.message || "Authentication failed";
       setError(errorMsg);
       setLoading(false);
       return false;

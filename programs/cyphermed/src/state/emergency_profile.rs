@@ -54,7 +54,7 @@ impl EmergencyProfile {
         (1 + 32) +               // primary_physician (Option<Pubkey>)
         (1 + 4 + 64) +           // insurance_info_hash (Option<String> max 64)
         8 +                       // updated_at
-        1;                        // bump
+        1; // bump
 
     pub const MAX_BLOOD_TYPE_LEN: usize = 10;
     pub const MAX_ALLERGIES_LEN: usize = 200;

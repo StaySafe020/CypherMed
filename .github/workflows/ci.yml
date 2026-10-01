@@ -74,7 +74,6 @@ jobs:
 
       - name: Run Rust clippy
         run: cargo clippy --all-targets -- -D warnings
-        continue-on-error: true
 
       - name: Run Anchor tests
         run: anchor test
@@ -130,7 +129,6 @@ jobs:
       - name: Build backend
         working-directory: backend
         run: npx tsc --noEmit
-        continue-on-error: true
 
   # ============================================
   # Job 3: Lint & Format Check
@@ -152,7 +150,6 @@ jobs:
 
       - name: Check Rust formatting
         run: cargo fmt --all -- --check
-        continue-on-error: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -164,4 +161,3 @@ jobs:
 
       - name: Check JS/TS formatting
         run: yarn lint
-        continue-on-error: true

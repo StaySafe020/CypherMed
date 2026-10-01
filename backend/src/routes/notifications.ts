@@ -218,33 +218,28 @@ router.get("/stats/summary", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Patient not found" });
     }
 
-    const [
-      total,
-      unread,
-      byType,
-      byPriority,
-      recentNotifications,
-    ] = await Promise.all([
-      prisma.notification.count({ where: { patientId: patient.id } }),
-      prisma.notification.count({
-        where: { patientId: patient.id, read: false },
-      }),
-      prisma.notification.groupBy({
-        by: ["type"],
-        where: { patientId: patient.id },
-        _count: true,
-      }),
-      prisma.notification.groupBy({
-        by: ["priority"],
-        where: { patientId: patient.id },
-        _count: true,
-      }),
-      prisma.notification.findMany({
-        where: { patientId: patient.id },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-      }),
-    ]);
+    const [total, unread, byType, byPriority, recentNotifications] =
+      await Promise.all([
+        prisma.notification.count({ where: { patientId: patient.id } }),
+        prisma.notification.count({
+          where: { patientId: patient.id, read: false },
+        }),
+        prisma.notification.groupBy({
+          by: ["type"],
+          where: { patientId: patient.id },
+          _count: true,
+        }),
+        prisma.notification.groupBy({
+          by: ["priority"],
+          where: { patientId: patient.id },
+          _count: true,
+        }),
+        prisma.notification.findMany({
+          where: { patientId: patient.id },
+          orderBy: { createdAt: "desc" },
+          take: 5,
+        }),
+      ]);
 
     res.json({
       summary: {

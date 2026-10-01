@@ -1,13 +1,10 @@
-use anchor_lang::prelude::*;
-use crate::state::*;
 use crate::errors::CypherMedError;
+use crate::state::*;
 use crate::utils::*;
+use anchor_lang::prelude::*;
 
 /// Access (view) a medical record and create audit log
-pub fn access_record(
-    ctx: Context<AccessRecord>,
-    client_info: Option<String>,
-) -> Result<()> {
+pub fn access_record(ctx: Context<AccessRecord>, client_info: Option<String>) -> Result<()> {
     let patient = &ctx.accounts.patient;
     let record = &mut ctx.accounts.record;
     let clock = Clock::get()?;
@@ -82,7 +79,7 @@ pub fn access_record(
         ctx.accounts.accessor.key(),
         accessor_role
     );
-    
+
     Ok(())
 }
 
@@ -113,9 +110,9 @@ pub struct AccessRecord<'info> {
         payer = accessor,
         space = AuditLog::LEN,
         seeds = [
-            b"audit", 
-            record.key().as_ref(), 
-            accessor.key().as_ref(), 
+            b"audit",
+            record.key().as_ref(),
+            accessor.key().as_ref(),
             b"access",
             &record.access_count.to_le_bytes()
         ],

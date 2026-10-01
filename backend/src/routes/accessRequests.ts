@@ -1,6 +1,10 @@
 import { Router, Request, Response } from "express";
 import prisma from "../prisma";
-import { notifyAccessRequest, notifyAccessGranted, notifyAccessDenied } from "../utils/notifications";
+import {
+  notifyAccessRequest,
+  notifyAccessGranted,
+  notifyAccessDenied,
+} from "../utils/notifications";
 
 const router = Router();
 
@@ -9,15 +13,17 @@ router.post("/", async (req: Request, res: Response) => {
   try {
     const { patientId, role, reason, expiresAt } = req.body;
     const requester = (req as any).user?.walletAddress;
-    
+
     if (!patientId || !requester || !role) {
-      return res.status(400).json({ 
-        error: "patientId, requester, and role are required" 
+      return res.status(400).json({
+        error: "patientId, requester, and role are required",
       });
     }
 
     // Verify patient exists
-    const patient = await prisma.patient.findUnique({ where: { id: patientId } });
+    const patient = await prisma.patient.findUnique({
+      where: { id: patientId },
+    });
     if (!patient) {
       return res.status(404).json({ error: "Patient not found" });
     }
@@ -50,7 +56,12 @@ router.post("/", async (req: Request, res: Response) => {
     });
 
     // Send notification to patient
-    await notifyAccessRequest(patient.wallet, requester, role, accessRequest.id);
+    await notifyAccessRequest(
+      patient.wallet,
+      requester,
+      role,
+      accessRequest.id
+    );
 
     res.status(201).json(accessRequest);
   } catch (err) {
@@ -64,13 +75,16 @@ router.get("/", async (req: Request, res: Response) => {
     const { patientId, requester, status } = req.query;
     const wallet = (req as any).user?.walletAddress;
     const where: any = {};
-    
+
     if (patientId) where.patientId = String(patientId);
     if (requester) where.requester = String(requester);
     if (status) where.status = String(status);
 
     if (patientId) {
-      const patient = await prisma.patient.findUnique({ where: { id: String(patientId) }, select: { wallet: true } });
+      const patient = await prisma.patient.findUnique({
+        where: { id: String(patientId) },
+        select: { wallet: true },
+      });
       if (!patient || patient.wallet !== wallet) {
         where.requester = wallet;
         delete where.patientId;
@@ -105,7 +119,7 @@ router.get("/", async (req: Request, res: Response) => {
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
+
     const request = await prisma.accessRequest.findUnique({
       where: { id },
       include: {
@@ -140,15 +154,19 @@ router.post("/:id/approve", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Access request not found" });
     }
 
-    const patient = await prisma.patient.findUnique({ where: { id: request.patientId } });
+    const patient = await prisma.patient.findUnique({
+      where: { id: request.patientId },
+    });
     if (!patient) return res.status(404).json({ error: "Patient not found" });
     if ((req as any).user?.walletAddress !== patient.wallet) {
-      return res.status(403).json({ error: "Only the patient can approve access requests" });
+      return res
+        .status(403)
+        .json({ error: "Only the patient can approve access requests" });
     }
 
     if (request.status !== "pending") {
-      return res.status(400).json({ 
-        error: `Request already ${request.status}` 
+      return res.status(400).json({
+        error: `Request already ${request.status}`,
       });
     }
 
@@ -159,8 +177,8 @@ router.post("/:id/approve", async (req: Request, res: Response) => {
     });
 
     // Create AccessGrantOffchain record
-    const grantExpiration = grantExpiresAt 
-      ? new Date(grantExpiresAt) 
+    const grantExpiration = grantExpiresAt
+      ? new Date(grantExpiresAt)
       : request.expiresAt;
 
     const grant = await prisma.accessGrantOffchain.create({
@@ -182,8 +200,8 @@ router.post("/:id/approve", async (req: Request, res: Response) => {
         action: "approve_access_request",
         success: true,
         reason: `Access request approved for ${request.requester}`,
-        metadata: { 
-          requestId: id, 
+        metadata: {
+          requestId: id,
           requester: request.requester,
           role: request.role,
           allowedTypes: allowedTypes || "all",
@@ -201,10 +219,10 @@ router.post("/:id/approve", async (req: Request, res: Response) => {
       );
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       request: updatedRequest,
-      message: "Access request approved and grant created" 
+      message: "Access request approved and grant created",
     });
   } catch (err) {
     res.status(500).json({ error: String(err) });
@@ -222,22 +240,26 @@ router.post("/:id/deny", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Access request not found" });
     }
 
-    const patient = await prisma.patient.findUnique({ where: { id: request.patientId } });
+    const patient = await prisma.patient.findUnique({
+      where: { id: request.patientId },
+    });
     if (!patient) return res.status(404).json({ error: "Patient not found" });
     if ((req as any).user?.walletAddress !== patient.wallet) {
-      return res.status(403).json({ error: "Only the patient can deny access requests" });
+      return res
+        .status(403)
+        .json({ error: "Only the patient can deny access requests" });
     }
 
     if (request.status !== "pending") {
-      return res.status(400).json({ 
-        error: `Request already ${request.status}` 
+      return res.status(400).json({
+        error: `Request already ${request.status}`,
       });
     }
 
     // Update request status
     const updatedRequest = await prisma.accessRequest.update({
       where: { id },
-      data: { 
+      data: {
         status: "denied",
         reason: reason || request.reason,
       },
@@ -252,8 +274,8 @@ router.post("/:id/deny", async (req: Request, res: Response) => {
         action: "deny_access_request",
         success: true,
         reason: reason || `Access request denied for ${request.requester}`,
-        metadata: { 
-          requestId: id, 
+        metadata: {
+          requestId: id,
           requester: request.requester,
           role: request.role,
         },
@@ -265,10 +287,10 @@ router.post("/:id/deny", async (req: Request, res: Response) => {
       await notifyAccessDenied(patient.wallet, request.requester, id);
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       request: updatedRequest,
-      message: "Access request denied" 
+      message: "Access request denied",
     });
   } catch (err) {
     res.status(500).json({ error: String(err) });
@@ -281,8 +303,8 @@ router.post("/batch/approve", async (req: Request, res: Response) => {
     const { requestIds, allowedTypes, grantExpiresAt, approvedBy } = req.body;
 
     if (!requestIds || !Array.isArray(requestIds) || requestIds.length === 0) {
-      return res.status(400).json({ 
-        error: "requestIds array is required" 
+      return res.status(400).json({
+        error: "requestIds array is required",
       });
     }
 
@@ -291,8 +313,10 @@ router.post("/batch/approve", async (req: Request, res: Response) => {
 
     for (const id of requestIds) {
       try {
-        const request = await prisma.accessRequest.findUnique({ where: { id } });
-        
+        const request = await prisma.accessRequest.findUnique({
+          where: { id },
+        });
+
         if (!request) {
           errors.push({ id, error: "Not found" });
           continue;
@@ -310,8 +334,8 @@ router.post("/batch/approve", async (req: Request, res: Response) => {
         });
 
         // Create grant
-        const grantExpiration = grantExpiresAt 
-          ? new Date(grantExpiresAt) 
+        const grantExpiration = grantExpiresAt
+          ? new Date(grantExpiresAt)
           : request.expiresAt;
 
         await prisma.accessGrantOffchain.create({
@@ -332,7 +356,7 @@ router.post("/batch/approve", async (req: Request, res: Response) => {
             action: "approve_access_request",
             success: true,
             reason: `Batch approval for ${request.requester}`,
-            metadata: { 
+            metadata: {
               requestId: id,
               requester: request.requester,
               role: request.role,
@@ -347,7 +371,7 @@ router.post("/batch/approve", async (req: Request, res: Response) => {
       }
     }
 
-    res.json({ 
+    res.json({
       approved: results.length,
       failed: errors.length,
       results,
@@ -370,8 +394,8 @@ router.delete("/:id", async (req: Request, res: Response) => {
     }
 
     if (request.status !== "pending") {
-      return res.status(400).json({ 
-        error: "Can only cancel pending requests" 
+      return res.status(400).json({
+        error: "Can only cancel pending requests",
       });
     }
 
@@ -388,15 +412,17 @@ router.delete("/:id", async (req: Request, res: Response) => {
         accessor: cancelledBy || request.requester,
         action: "cancel_access_request",
         success: true,
-        reason: `Access request cancelled by ${cancelledBy || request.requester}`,
+        reason: `Access request cancelled by ${
+          cancelledBy || request.requester
+        }`,
         metadata: { requestId: id },
       },
     });
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       request: updatedRequest,
-      message: "Access request cancelled" 
+      message: "Access request cancelled",
     });
   } catch (err) {
     res.status(500).json({ error: String(err) });

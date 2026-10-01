@@ -1,6 +1,6 @@
-use anchor_lang::prelude::*;
-use crate::state::*;
 use crate::errors::CypherMedError;
+use crate::state::*;
+use anchor_lang::prelude::*;
 
 /// Grant access to a healthcare provider
 pub fn grant_access(
@@ -69,7 +69,7 @@ pub fn grant_access(
         patient.key(),
         role
     );
-    
+
     Ok(())
 }
 

@@ -1,6 +1,6 @@
-use anchor_lang::prelude::*;
-use crate::state::*;
 use crate::errors::CypherMedError;
+use crate::state::*;
+use anchor_lang::prelude::*;
 
 /// Approve an access request and create access grant
 pub fn approve_access_request(
@@ -85,14 +85,14 @@ pub fn approve_access_request(
         access_request.requester,
         patient.key()
     );
-    
+
     emit!(AccessRequestApprovedEvent {
         request: access_request.key(),
         patient: patient.key(),
         provider: access_request.requester,
         access_grant: access_grant.key(),
     });
-    
+
     Ok(())
 }
 
@@ -122,10 +122,7 @@ pub fn deny_access_request(
 
     // Validate denial reason length if provided
     if let Some(ref r) = denial_reason {
-        require!(
-            r.len() <= 200,
-            CypherMedError::ReasonTooLong
-        );
+        require!(r.len() <= 200, CypherMedError::ReasonTooLong);
     }
 
     // Update access request status
@@ -139,14 +136,14 @@ pub fn deny_access_request(
         access_request.requester,
         patient.key()
     );
-    
+
     emit!(AccessRequestDeniedEvent {
         request: access_request.key(),
         patient: patient.key(),
         requester: access_request.requester,
         reason: denial_reason,
     });
-    
+
     Ok(())
 }
 

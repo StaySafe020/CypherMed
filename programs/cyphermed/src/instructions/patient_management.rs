@@ -1,6 +1,6 @@
-use anchor_lang::prelude::*;
-use crate::state::*;
 use crate::errors::CypherMedError;
+use crate::state::*;
+use anchor_lang::prelude::*;
 
 /// Update patient account information
 pub fn update_patient(
@@ -17,18 +17,13 @@ pub fn update_patient(
     patient.emergency_contact = emergency_contact;
     patient.updated_at = clock.unix_timestamp;
 
-    msg!(
-        "Patient {} updated emergency contact",
-        patient.key()
-    );
-    
+    msg!("Patient {} updated emergency contact", patient.key());
+
     Ok(())
 }
 
 /// Deactivate patient account (soft delete)
-pub fn deactivate_patient(
-    ctx: Context<DeactivatePatient>,
-) -> Result<()> {
+pub fn deactivate_patient(ctx: Context<DeactivatePatient>) -> Result<()> {
     let patient = &mut ctx.accounts.patient;
     let clock = Clock::get()?;
 
@@ -39,24 +34,19 @@ pub fn deactivate_patient(
     patient.is_active = false;
     patient.updated_at = clock.unix_timestamp;
 
-    msg!(
-        "Patient {} account deactivated",
-        patient.key()
-    );
-    
+    msg!("Patient {} account deactivated", patient.key());
+
     emit!(PatientDeactivatedEvent {
         patient: patient.key(),
         authority: ctx.accounts.authority.key(),
         timestamp: clock.unix_timestamp,
     });
-    
+
     Ok(())
 }
 
 /// Reactivate a deactivated patient account
-pub fn reactivate_patient(
-    ctx: Context<ReactivatePatient>,
-) -> Result<()> {
+pub fn reactivate_patient(ctx: Context<ReactivatePatient>) -> Result<()> {
     let patient = &mut ctx.accounts.patient;
     let clock = Clock::get()?;
 
@@ -67,17 +57,14 @@ pub fn reactivate_patient(
     patient.is_active = true;
     patient.updated_at = clock.unix_timestamp;
 
-    msg!(
-        "Patient {} account reactivated",
-        patient.key()
-    );
-    
+    msg!("Patient {} account reactivated", patient.key());
+
     emit!(PatientReactivatedEvent {
         patient: patient.key(),
         authority: ctx.accounts.authority.key(),
         timestamp: clock.unix_timestamp,
     });
-    
+
     Ok(())
 }
 

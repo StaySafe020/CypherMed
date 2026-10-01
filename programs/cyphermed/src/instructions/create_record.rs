@@ -1,7 +1,7 @@
-use anchor_lang::prelude::*;
-use crate::state::*;
 use crate::errors::CypherMedError;
+use crate::state::*;
 use crate::utils::*;
+use anchor_lang::prelude::*;
 
 /// Create a new medical record
 pub fn create_record(
@@ -49,11 +49,14 @@ pub fn create_record(
 
     // Check if provider is authorized (either the patient or has access grant)
     let is_patient = ctx.accounts.provider.key() == patient.authority;
-    
+
     if !is_patient {
-        let access_grant = &ctx.accounts.access_grant.as_ref()
+        let access_grant = &ctx
+            .accounts
+            .access_grant
+            .as_ref()
             .ok_or(CypherMedError::AccessDenied)?;
-        
+
         require!(access_grant.is_active, CypherMedError::AccessGrantRevoked);
         require!(
             !is_grant_expired(access_grant.expires_at, clock.unix_timestamp),
@@ -89,8 +92,10 @@ pub fn create_record(
     audit.patient = patient.key();
     audit.record = record.key();
     audit.accessor = ctx.accounts.provider.key();
-    audit.accessor_role = if is_patient { Role::Patient } else { 
-        ctx.accounts.access_grant.as_ref().unwrap().role 
+    audit.accessor_role = if is_patient {
+        Role::Patient
+    } else {
+        ctx.accounts.access_grant.as_ref().unwrap().role
     };
     audit.action = AccessAction::Create;
     audit.record_type = record_type;
@@ -103,8 +108,12 @@ pub fn create_record(
     audit.metadata = Some("Record created".to_string());
     audit.bump = ctx.bumps.audit_log;
 
-    msg!("Medical record created: {} for patient: {}", record.key(), patient.key());
-    
+    msg!(
+        "Medical record created: {} for patient: {}",
+        record.key(),
+        patient.key()
+    );
+
     Ok(())
 }
 
@@ -139,9 +148,9 @@ pub struct CreateRecord<'info> {
         payer = provider,
         space = AuditLog::LEN,
         seeds = [
-            b"audit", 
-            record.key().as_ref(), 
-            provider.key().as_ref(), 
+            b"audit",
+            record.key().as_ref(),
+            provider.key().as_ref(),
             b"create",
             &patient.record_count.to_le_bytes()
         ],

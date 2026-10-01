@@ -1,14 +1,14 @@
 use anchor_lang::prelude::*;
 
 /// Patient account - represents a patient in the system
-/// 
+///
 /// Privacy Model:
 /// - `authority` is the wallet that controls this account (used for signing, never shared publicly)
-/// - `patient_id_hash` is a SHA-256 hash of (wallet + salt) — this is the portable ID 
+/// - `patient_id_hash` is a SHA-256 hash of (wallet + salt) — this is the portable ID
 ///    hospitals use to look up a patient. Cannot be reversed to find the wallet.
-/// - `identity_hash` is a hash of real-world identity (name + DOB + national ID) — 
+/// - `identity_hash` is a hash of real-world identity (name + DOB + national ID) —
 ///    used to verify same person across hospitals without exposing raw data.
-/// 
+///
 /// Think of it like:
 ///   wallet = your private key to the file cabinet
 ///   patient_id_hash = your hospital file number (safe to share)
@@ -27,31 +27,31 @@ pub struct Patient {
     /// Used to verify same person across different hospitals without exposing raw data.
     /// Two hospitals can compare this hash to confirm it's the same patient.
     pub identity_hash: String,
-    
+
     /// Patient's name (encrypted or pseudonym — never stored in plaintext on-chain)
     pub name: String,
-    
+
     /// Date of birth as Unix timestamp
     pub date_of_birth: i64,
-    
+
     /// Account creation timestamp
     pub created_at: i64,
-    
+
     /// Last updated timestamp
     pub updated_at: i64,
-    
+
     /// Total number of medical records
     pub record_count: u64,
-    
+
     /// Total number of access grants given
     pub access_grant_count: u64,
-    
+
     /// Is the account active?
     pub is_active: bool,
-    
+
     /// Emergency contact wallet (optional)
     pub emergency_contact: Option<Pubkey>,
-    
+
     /// Country code (ISO 3166-1 alpha-2, e.g., "NG", "US", "GB")
     /// For regional compliance (HIPAA, NDPR, GDPR)
     pub country_code: String,
@@ -75,7 +75,7 @@ impl Patient {
         1 +                     // is_active
         (1 + 32) +             // emergency_contact (Option<Pubkey>)
         (4 + 2) +              // country_code (2-char ISO code)
-        1;                      // bump
+        1; // bump
 
     pub const MAX_NAME_LEN: usize = 50;
     pub const MAX_HASH_LEN: usize = 64;

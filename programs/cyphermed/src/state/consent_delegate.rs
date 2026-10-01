@@ -66,7 +66,7 @@ impl ConsentDelegate {
         (1 + 32) +              // revoked_by (Option<Pubkey>)
         (1 + 8) +               // revoked_at (Option<i64>)
         (1 + 4 + 200) +         // reason (Option<String> max 200)
-        1;                        // bump
+        1; // bump
 }
 
 /// Relationship type between delegate and patient

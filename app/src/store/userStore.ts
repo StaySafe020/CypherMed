@@ -1,8 +1,14 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-export type UserRole = 'patient' | 'doctor' | 'nurse' | 'hospital_admin' | 'insurer' | null;
-export type VerificationStatus = 'none' | 'pending' | 'verified' | 'rejected';
+export type UserRole =
+  | "patient"
+  | "doctor"
+  | "nurse"
+  | "hospital_admin"
+  | "insurer"
+  | null;
+export type VerificationStatus = "none" | "pending" | "verified" | "rejected";
 
 interface UserProfile {
   walletAddress: string;
@@ -20,14 +26,14 @@ interface UserState {
   // Current user data
   profile: UserProfile | null;
   isFirstTime: boolean;
-  
+
   // Actions
   setProfile: (profile: UserProfile) => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
   setRole: (role: UserRole) => void;
   setVerificationStatus: (status: VerificationStatus) => void;
   clearProfile: () => void;
-  
+
   // Helpers
   isProvider: () => boolean;
   isVerified: () => boolean;
@@ -42,34 +48,46 @@ export const useUserStore = create<UserState>()(
 
       setProfile: (profile) => set({ profile, isFirstTime: false }),
 
-      updateProfile: (updates) => set((state) => ({
-        profile: state.profile ? { ...state.profile, ...updates } : null
-      })),
+      updateProfile: (updates) =>
+        set((state) => ({
+          profile: state.profile ? { ...state.profile, ...updates } : null,
+        })),
 
-      setRole: (role) => set((state) => ({
-        profile: state.profile ? { ...state.profile, role } : null
-      })),
+      setRole: (role) =>
+        set((state) => ({
+          profile: state.profile ? { ...state.profile, role } : null,
+        })),
 
-      setVerificationStatus: (status) => set((state) => ({
-        profile: state.profile ? { ...state.profile, verificationStatus: status } : null
-      })),
+      setVerificationStatus: (status) =>
+        set((state) => ({
+          profile: state.profile
+            ? { ...state.profile, verificationStatus: status }
+            : null,
+        })),
 
       clearProfile: () => set({ profile: null, isFirstTime: true }),
 
       isProvider: () => {
         const role = get().profile?.role;
-        return role === 'doctor' || role === 'nurse' || role === 'hospital_admin' || role === 'insurer';
+        return (
+          role === "doctor" ||
+          role === "nurse" ||
+          role === "hospital_admin" ||
+          role === "insurer"
+        );
       },
 
-      isVerified: () => get().profile?.verificationStatus === 'verified',
+      isVerified: () => get().profile?.verificationStatus === "verified",
 
       needsVerification: () => {
         const state = get();
-        return state.isProvider() && state.profile?.verificationStatus !== 'verified';
+        return (
+          state.isProvider() && state.profile?.verificationStatus !== "verified"
+        );
       },
     }),
     {
-      name: 'cyphermed-user',
+      name: "cyphermed-user",
     }
   )
 );

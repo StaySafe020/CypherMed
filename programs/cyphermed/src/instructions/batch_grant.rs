@@ -1,6 +1,6 @@
-use anchor_lang::prelude::*;
-use crate::state::*;
 use crate::errors::CypherMedError;
+use crate::state::*;
+use anchor_lang::prelude::*;
 
 /// Batch grant access to multiple providers at once
 pub fn batch_grant_access(
@@ -23,7 +23,10 @@ pub fn batch_grant_access(
     // Validate inputs
     require!(!providers.is_empty(), CypherMedError::NoProvidersSpecified);
     require!(providers.len() <= 10, CypherMedError::TooManyProviders);
-    require!(providers.len() == roles.len(), CypherMedError::ProviderRoleMismatch);
+    require!(
+        providers.len() == roles.len(),
+        CypherMedError::ProviderRoleMismatch
+    );
     require!(
         !allowed_record_types.is_empty(),
         CypherMedError::NoRecordTypesSpecified
@@ -54,11 +57,11 @@ pub fn batch_grant_access(
     // Note: Actual account initialization must be done via CPI or
     // multiple transactions. This is a simplified version that
     // validates inputs and emits an event for off-chain processing.
-    
+
     // In production, you'd either:
     // 1. Use remaining_accounts to init each AccessGrant
     // 2. Or require frontend to make multiple grant_access calls
-    
+
     emit!(BatchAccessGrantedEvent {
         patient: patient.key(),
         providers: providers.clone(),
@@ -69,7 +72,7 @@ pub fn batch_grant_access(
     });
 
     patient.updated_at = clock.unix_timestamp;
-    
+
     Ok(())
 }
 

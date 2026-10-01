@@ -1,6 +1,6 @@
-use anchor_lang::prelude::*;
-use crate::state::*;
 use crate::errors::CypherMedError;
+use crate::state::*;
+use anchor_lang::prelude::*;
 
 /// Revoke access from a healthcare provider
 pub fn revoke_access(ctx: Context<RevokeAccess>) -> Result<()> {
@@ -15,10 +15,7 @@ pub fn revoke_access(ctx: Context<RevokeAccess>) -> Result<()> {
     );
 
     // Check if already revoked
-    require!(
-        access_grant.is_active,
-        CypherMedError::AccessGrantRevoked
-    );
+    require!(access_grant.is_active, CypherMedError::AccessGrantRevoked);
 
     // Revoke the access
     access_grant.is_active = false;
@@ -32,7 +29,7 @@ pub fn revoke_access(ctx: Context<RevokeAccess>) -> Result<()> {
         access_grant.provider,
         patient.key()
     );
-    
+
     Ok(())
 }
 

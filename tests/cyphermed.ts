@@ -42,13 +42,24 @@ describe("CypherMed - Medical Records Protocol", () => {
 
   it("Initializes a patient account", async () => {
     const name = "John Doe";
-    const dateOfBirth = new anchor.BN(Math.floor(Date.now() / 1000) - 946080000);
-    const patientIdHash = "a3f8c2e1b7d4f6a9c0e3b5d8f1a4c7e0b2d5f8a1c4e7b0d3f6a9c2e5b8d1f4";
-    const identityHash = "b7d1e9f3a5c8d2e6f0a4b8c1d5e9f3a7b0c4d8e2f6a0b3c7d1e5f9a3b7c0d4";
+    const dateOfBirth = new anchor.BN(
+      Math.floor(Date.now() / 1000) - 946080000
+    );
+    const patientIdHash =
+      "a3f8c2e1b7d4f6a9c0e3b5d8f1a4c7e0b2d5f8a1c4e7b0d3f6a9c2e5b8d1f4";
+    const identityHash =
+      "b7d1e9f3a5c8d2e6f0a4b8c1d5e9f3a7b0c4d8e2f6a0b3c7d1e5f9a3b7c0d4";
     const countryCode = "NG";
 
     await program.methods
-      .initializePatient(name, dateOfBirth, patientIdHash, identityHash, countryCode, null)
+      .initializePatient(
+        name,
+        dateOfBirth,
+        patientIdHash,
+        identityHash,
+        countryCode,
+        null
+      )
       .accounts({
         patient: patientPda,
         authority: patientKeypair.publicKey,
@@ -58,7 +69,7 @@ describe("CypherMed - Medical Records Protocol", () => {
       .rpc();
 
     const patientAccount = await program.account.patient.fetch(patientPda);
-    
+
     expect(patientAccount.authority.toString()).to.equal(
       patientKeypair.publicKey.toString()
     );

@@ -16,14 +16,20 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     // Generate unique filename with original extension
-    const uniqueSuffix = `${Date.now()}-${crypto.randomBytes(8).toString("hex")}`;
+    const uniqueSuffix = `${Date.now()}-${crypto
+      .randomBytes(8)
+      .toString("hex")}`;
     const ext = path.extname(file.originalname);
     cb(null, `${uniqueSuffix}${ext}`);
   },
 });
 
 // File filter for medical documents
-const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const fileFilter = (
+  req: any,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback
+) => {
   // Allowed file types for medical records
   const allowedMimes = [
     "application/pdf",
@@ -109,7 +115,7 @@ export function getFileMetadata(filename: string) {
   if (!fs.existsSync(filePath)) {
     return null;
   }
-  
+
   const stats = fs.statSync(filePath);
   return {
     filename,

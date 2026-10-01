@@ -45,19 +45,24 @@ export function initializeSocketIO(httpServer: HTTPServer) {
     });
 
     // Mark notification as read
-    socket.on("mark_read", async (data: { notificationId: string; wallet: string }) => {
-      try {
-        await prisma.notification.update({
-          where: { id: data.notificationId },
-          data: { read: true, readAt: new Date() },
-        });
+    socket.on(
+      "mark_read",
+      async (data: { notificationId: string; wallet: string }) => {
+        try {
+          await prisma.notification.update({
+            where: { id: data.notificationId },
+            data: { read: true, readAt: new Date() },
+          });
 
-        // Send updated count
-        sendUnreadCount(data.wallet);
-      } catch (error) {
-        socket.emit("error", { message: "Failed to mark notification as read" });
+          // Send updated count
+          sendUnreadCount(data.wallet);
+        } catch (error) {
+          socket.emit("error", {
+            message: "Failed to mark notification as read",
+          });
+        }
       }
-    });
+    );
 
     // Mark all as read
     socket.on("mark_all_read", async (data: { wallet: string }) => {

@@ -1,6 +1,6 @@
-use anchor_lang::prelude::*;
-use crate::state::*;
 use crate::errors::CypherMedError;
+use crate::state::*;
+use anchor_lang::prelude::*;
 
 /// Emergency access to medical records (break-glass scenario)
 /// Enhanced with severity levels, time-limited access, and emergency profile retrieval
@@ -27,10 +27,7 @@ pub fn emergency_access(
 
     // Validate client_info length if provided
     if let Some(ref info) = client_info {
-        require!(
-            info.len() <= 200,
-            CypherMedError::MetadataTooLong
-        );
+        require!(info.len() <= 200, CypherMedError::MetadataTooLong);
     }
 
     // Verify patient and record are active
@@ -64,7 +61,7 @@ pub fn emergency_access(
         ctx.accounts.emergency_responder.key(),
         justification
     );
-    
+
     // Emit event for real-time monitoring
     emit!(EmergencyAccessEvent {
         patient: patient.key(),
@@ -73,7 +70,7 @@ pub fn emergency_access(
         timestamp: clock.unix_timestamp,
         justification,
     });
-    
+
     Ok(())
 }
 
@@ -103,10 +100,7 @@ pub fn emergency_access_with_profile(
 
     // Validate client_info length
     if let Some(ref info) = client_info {
-        require!(
-            info.len() <= 200,
-            CypherMedError::MetadataTooLong
-        );
+        require!(info.len() <= 200, CypherMedError::MetadataTooLong);
     }
 
     // Verify patient is active
@@ -187,9 +181,9 @@ pub struct EmergencyAccess<'info> {
         payer = emergency_responder,
         space = AuditLog::LEN,
         seeds = [
-            b"audit", 
-            record.key().as_ref(), 
-            emergency_responder.key().as_ref(), 
+            b"audit",
+            record.key().as_ref(),
+            emergency_responder.key().as_ref(),
             b"emergency",
             &record.access_count.to_le_bytes()
         ],
@@ -229,9 +223,9 @@ pub struct EmergencyAccessWithProfile<'info> {
         payer = emergency_responder,
         space = AuditLog::LEN,
         seeds = [
-            b"audit", 
-            record.key().as_ref(), 
-            emergency_responder.key().as_ref(), 
+            b"audit",
+            record.key().as_ref(),
+            emergency_responder.key().as_ref(),
             b"emergency_profile",
             &record.access_count.to_le_bytes()
         ],

@@ -16,7 +16,7 @@ describe("CypherMed - Comprehensive Test Suite", () => {
   let doctor2Keypair: Keypair;
   let hospitalKeypair: Keypair;
   let emergencyResponderKeypair: Keypair;
-  
+
   let patientPda: PublicKey;
   let recordPda: PublicKey;
   let accessGrantPda: PublicKey;
@@ -56,11 +56,7 @@ describe("CypherMed - Comprehensive Test Suite", () => {
     );
 
     [recordPda] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("record"),
-        patientPda.toBuffer(),
-        Buffer.from(recordId),
-      ],
+      [Buffer.from("record"), patientPda.toBuffer(), Buffer.from(recordId)],
       program.programId
     );
 
@@ -91,13 +87,24 @@ describe("CypherMed - Comprehensive Test Suite", () => {
   describe("1. Patient Registration", () => {
     it("Should initialize patient account", async () => {
       const name = "John Doe";
-      const dateOfBirth = new anchor.BN(Math.floor(Date.now() / 1000) - 946080000);
-      const patientIdHash = "a3f8c2e1b7d4f6a9c0e3b5d8f1a4c7e0b2d5f8a1c4e7b0d3f6a9c2e5b8d1f4";
-      const identityHash = "b7d1e9f3a5c8d2e6f0a4b8c1d5e9f3a7b0c4d8e2f6a0b3c7d1e5f9a3b7c0d4";
+      const dateOfBirth = new anchor.BN(
+        Math.floor(Date.now() / 1000) - 946080000
+      );
+      const patientIdHash =
+        "a3f8c2e1b7d4f6a9c0e3b5d8f1a4c7e0b2d5f8a1c4e7b0d3f6a9c2e5b8d1f4";
+      const identityHash =
+        "b7d1e9f3a5c8d2e6f0a4b8c1d5e9f3a7b0c4d8e2f6a0b3c7d1e5f9a3b7c0d4";
       const countryCode = "NG";
 
       await program.methods
-        .initializePatient(name, dateOfBirth, patientIdHash, identityHash, countryCode, null)
+        .initializePatient(
+          name,
+          dateOfBirth,
+          patientIdHash,
+          identityHash,
+          countryCode,
+          null
+        )
         .accounts({
           patient: patientPda,
           authority: patientKeypair.publicKey,
@@ -107,7 +114,7 @@ describe("CypherMed - Comprehensive Test Suite", () => {
         .rpc();
 
       const patientAccount = await program.account.patient.fetch(patientPda);
-      
+
       expect(patientAccount.authority.toString()).to.equal(
         patientKeypair.publicKey.toString()
       );
@@ -145,10 +152,7 @@ describe("CypherMed - Comprehensive Test Suite", () => {
   describe("2. Access Control - Direct Grant", () => {
     it("Should grant access to doctor", async () => {
       const role = { doctor: {} };
-      const allowedRecordTypes = [
-        { generalMedical: {} },
-        { prescription: {} },
-      ];
+      const allowedRecordTypes = [{ generalMedical: {} }, { prescription: {} }];
 
       await program.methods
         .grantAccess(
@@ -170,8 +174,10 @@ describe("CypherMed - Comprehensive Test Suite", () => {
         .signers([patientKeypair])
         .rpc();
 
-      const accessGrant = await program.account.accessGrant.fetch(accessGrantPda);
-      
+      const accessGrant = await program.account.accessGrant.fetch(
+        accessGrantPda
+      );
+
       expect(accessGrant.isActive).to.be.true;
       expect(accessGrant.canCreate).to.be.true;
       expect(accessGrant.canView).to.be.true;
@@ -190,7 +196,9 @@ describe("CypherMed - Comprehensive Test Suite", () => {
         .signers([patientKeypair])
         .rpc();
 
-      const accessGrant = await program.account.accessGrant.fetch(accessGrantPda);
+      const accessGrant = await program.account.accessGrant.fetch(
+        accessGrantPda
+      );
       expect(accessGrant.isActive).to.be.false;
 
       console.log("Access revoked from doctor");
@@ -213,10 +221,14 @@ describe("CypherMed - Comprehensive Test Suite", () => {
         .signers([doctor2Keypair])
         .rpc();
 
-      const request = await program.account.accessRequest.fetch(accessRequestPda);
-      
+      const request = await program.account.accessRequest.fetch(
+        accessRequestPda
+      );
+
       expect(request.patient.toString()).to.equal(patientPda.toString());
-      expect(request.requester.toString()).to.equal(doctor2Keypair.publicKey.toString());
+      expect(request.requester.toString()).to.equal(
+        doctor2Keypair.publicKey.toString()
+      );
       expect(request.reason).to.equal(reason);
       expect(request.status).to.deep.equal({ pending: {} });
 
@@ -241,7 +253,7 @@ describe("CypherMed - Comprehensive Test Suite", () => {
           null, // No expiration
           true, // can_create
           false, // can_modify
-          true, // can_view
+          true // can_view
         )
         .accounts({
           patient: patientPda,
@@ -253,7 +265,9 @@ describe("CypherMed - Comprehensive Test Suite", () => {
         .signers([patientKeypair])
         .rpc();
 
-      const request = await program.account.accessRequest.fetch(accessRequestPda);
+      const request = await program.account.accessRequest.fetch(
+        accessRequestPda
+      );
       expect(request.status).to.deep.equal({ approved: {} });
 
       const grant = await program.account.accessGrant.fetch(newAccessGrantPda);
@@ -321,11 +335,12 @@ describe("CypherMed - Comprehensive Test Suite", () => {
     });
 
     it("Should update medical record", async () => {
-      const updateNote = "Patient advised to stop aspirin - allergic reaction observed";
+      const updateNote =
+        "Patient advised to stop aspirin - allergic reaction observed";
       const newMetadata = "Updated after follow-up visit";
 
       const record = await program.account.medicalRecord.fetch(recordPda);
-      
+
       const [updateAuditPda] = PublicKey.findProgramAddressSync(
         [
           Buffer.from("audit"),
@@ -363,7 +378,9 @@ describe("CypherMed - Comprehensive Test Suite", () => {
         .signers([doctor2Keypair])
         .rpc();
 
-      const updatedRecord = await program.account.medicalRecord.fetch(recordPda);
+      const updatedRecord = await program.account.medicalRecord.fetch(
+        recordPda
+      );
       expect(updatedRecord.metadata).to.equal(newMetadata);
 
       console.log("Medical record updated");
@@ -371,7 +388,7 @@ describe("CypherMed - Comprehensive Test Suite", () => {
 
     it("Should access (view) medical record and create audit log", async () => {
       const record = await program.account.medicalRecord.fetch(recordPda);
-      
+
       const [viewAuditPda] = PublicKey.findProgramAddressSync(
         [
           Buffer.from("audit"),
@@ -416,7 +433,7 @@ describe("CypherMed - Comprehensive Test Suite", () => {
   describe("5. Emergency Access", () => {
     it("Should allow emergency access without permission", async () => {
       const record = await program.account.medicalRecord.fetch(recordPda);
-      
+
       const [emergencyAuditPda] = PublicKey.findProgramAddressSync(
         [
           Buffer.from("audit"),
@@ -428,7 +445,8 @@ describe("CypherMed - Comprehensive Test Suite", () => {
         program.programId
       );
 
-      const justification = "Car accident - unconscious patient - life threatening";
+      const justification =
+        "Car accident - unconscious patient - life threatening";
 
       await program.methods
         .emergencyAccess(justification, "Ambulance #142")
@@ -454,7 +472,7 @@ describe("CypherMed - Comprehensive Test Suite", () => {
   describe("6. Record Deletion", () => {
     it("Should soft delete medical record", async () => {
       const record = await program.account.medicalRecord.fetch(recordPda);
-      
+
       const [deleteAuditPda] = PublicKey.findProgramAddressSync(
         [
           Buffer.from("audit"),
@@ -480,7 +498,9 @@ describe("CypherMed - Comprehensive Test Suite", () => {
         .signers([patientKeypair])
         .rpc();
 
-      const deletedRecord = await program.account.medicalRecord.fetch(recordPda);
+      const deletedRecord = await program.account.medicalRecord.fetch(
+        recordPda
+      );
       expect(deletedRecord.isActive).to.be.false;
 
       const auditLog = await program.account.auditLog.fetch(deleteAuditPda);
@@ -579,15 +599,15 @@ describe("CypherMed - Comprehensive Test Suite", () => {
     it("Should create emergency profile", async () => {
       await program.methods
         .createEmergencyProfile(
-          "O+",                                    // blood_type
-          "Penicillin, Latex",                     // allergies
-          "Metformin 500mg, Lisinopril 10mg",      // current_medications
-          "Type 2 Diabetes, Hypertension",         // chronic_conditions
-          "Patient has pacemaker - no MRI",         // emergency_instructions
-          true,                                     // is_organ_donor
-          false,                                    // dnr_status
-          null,                                     // primary_physician
-          null,                                     // insurance_info_hash
+          "O+", // blood_type
+          "Penicillin, Latex", // allergies
+          "Metformin 500mg, Lisinopril 10mg", // current_medications
+          "Type 2 Diabetes, Hypertension", // chronic_conditions
+          "Patient has pacemaker - no MRI", // emergency_instructions
+          true, // is_organ_donor
+          false, // dnr_status
+          null, // primary_physician
+          null // insurance_info_hash
         )
         .accounts({
           patient: patientPda,
@@ -598,11 +618,17 @@ describe("CypherMed - Comprehensive Test Suite", () => {
         .signers([patientKeypair])
         .rpc();
 
-      const profile = await program.account.emergencyProfile.fetch(emergencyProfilePda);
+      const profile = await program.account.emergencyProfile.fetch(
+        emergencyProfilePda
+      );
       expect(profile.bloodType).to.equal("O+");
       expect(profile.allergies).to.equal("Penicillin, Latex");
-      expect(profile.currentMedications).to.equal("Metformin 500mg, Lisinopril 10mg");
-      expect(profile.chronicConditions).to.equal("Type 2 Diabetes, Hypertension");
+      expect(profile.currentMedications).to.equal(
+        "Metformin 500mg, Lisinopril 10mg"
+      );
+      expect(profile.chronicConditions).to.equal(
+        "Type 2 Diabetes, Hypertension"
+      );
       expect(profile.isOrganDonor).to.be.true;
       expect(profile.dnrStatus).to.be.false;
 
@@ -612,15 +638,15 @@ describe("CypherMed - Comprehensive Test Suite", () => {
     it("Should update emergency profile", async () => {
       await program.methods
         .updateEmergencyProfile(
-          null,                                    // keep blood_type
-          "Penicillin, Latex, Sulfa drugs",        // update allergies
-          null,                                    // keep medications
-          null,                                    // keep conditions
-          null,                                    // keep instructions
-          null,                                    // keep organ donor
-          null,                                    // keep dnr
-          null,                                    // keep physician
-          null,                                    // keep insurance
+          null, // keep blood_type
+          "Penicillin, Latex, Sulfa drugs", // update allergies
+          null, // keep medications
+          null, // keep conditions
+          null, // keep instructions
+          null, // keep organ donor
+          null, // keep dnr
+          null, // keep physician
+          null // keep insurance
         )
         .accounts({
           patient: patientPda,
@@ -630,7 +656,9 @@ describe("CypherMed - Comprehensive Test Suite", () => {
         .signers([patientKeypair])
         .rpc();
 
-      const profile = await program.account.emergencyProfile.fetch(emergencyProfilePda);
+      const profile = await program.account.emergencyProfile.fetch(
+        emergencyProfilePda
+      );
       expect(profile.allergies).to.equal("Penicillin, Latex, Sulfa drugs");
       expect(profile.bloodType).to.equal("O+"); // unchanged
 
@@ -663,14 +691,14 @@ describe("CypherMed - Comprehensive Test Suite", () => {
     it("Should delegate consent to guardian", async () => {
       await program.methods
         .delegateConsent(
-          { parent: {} },     // relationship
-          true,               // can_grant_access
-          true,               // can_revoke_access
-          true,               // can_approve_requests
-          true,               // can_create_records
-          true,               // can_view_records
-          null,               // no expiration
-          "Legal guardian of minor patient",
+          { parent: {} }, // relationship
+          true, // can_grant_access
+          true, // can_revoke_access
+          true, // can_approve_requests
+          true, // can_create_records
+          true, // can_view_records
+          null, // no expiration
+          "Legal guardian of minor patient"
         )
         .accounts({
           patient: patientPda,
@@ -682,7 +710,9 @@ describe("CypherMed - Comprehensive Test Suite", () => {
         .signers([patientKeypair])
         .rpc();
 
-      const delegation = await program.account.consentDelegate.fetch(consentDelegatePda);
+      const delegation = await program.account.consentDelegate.fetch(
+        consentDelegatePda
+      );
       expect(delegation.isActive).to.be.true;
       expect(delegation.canGrantAccess).to.be.true;
       expect(delegation.canRevokeAccess).to.be.true;
@@ -706,9 +736,13 @@ describe("CypherMed - Comprehensive Test Suite", () => {
         .signers([patientKeypair])
         .rpc();
 
-      const delegation = await program.account.consentDelegate.fetch(consentDelegatePda);
+      const delegation = await program.account.consentDelegate.fetch(
+        consentDelegatePda
+      );
       expect(delegation.isActive).to.be.false;
-      expect(delegation.revokedBy.toString()).to.equal(patientKeypair.publicKey.toString());
+      expect(delegation.revokedBy.toString()).to.equal(
+        patientKeypair.publicKey.toString()
+      );
 
       console.log("Delegation revoked");
     });
@@ -782,7 +816,7 @@ describe("CypherMed - Comprehensive Test Suite", () => {
       await program.methods
         .emergencyAccessWithProfile(
           "Multi-car collision - patient unresponsive - need immediate treatment info",
-          { critical: {} },     // severity
+          { critical: {} }, // severity
           "Ambulance Unit #7 - GPS: 6.5244,3.3792"
         )
         .accounts({

@@ -1,45 +1,45 @@
-use anchor_lang::prelude::*;
 use super::RecordType;
+use anchor_lang::prelude::*;
 
 /// Medical Record Metadata - stored on-chain
 #[account]
 pub struct MedicalRecord {
     /// Patient who owns this record
     pub patient: Pubkey,
-    
+
     /// Healthcare provider who created the record
     pub created_by: Pubkey,
-    
+
     /// Type of medical record
     pub record_type: RecordType,
-    
+
     /// Unique record ID (can be used to fetch from off-chain DB)
     pub record_id: String,
-    
+
     /// Hash of the encrypted off-chain data (for integrity verification)
     pub data_hash: String,
-    
+
     /// IPFS/Arweave CID for distributed storage (optional)
     pub storage_cid: Option<String>,
-    
+
     /// Creation timestamp
     pub created_at: i64,
-    
+
     /// Last modified timestamp
     pub modified_at: i64,
-    
+
     /// Last accessed timestamp
     pub last_accessed: i64,
-    
+
     /// Number of times this record has been accessed
     pub access_count: u64,
-    
+
     /// Is this record active or archived?
     pub is_active: bool,
-    
+
     /// Additional metadata (optional)
     pub metadata: Option<String>,
-    
+
     /// Bump seed for PDA
     pub bump: u8,
 }
