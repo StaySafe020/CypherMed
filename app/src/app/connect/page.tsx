@@ -13,9 +13,11 @@ export default function ConnectPage() {
   const router = useRouter();
   const { profile, setProfile } = useUserStore();
   const { signAndVerify } = useWalletAuth();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, walletAddress: authenticatedWallet, isLoading: authLoading, error: authError, setError } = useAuthStore();
   
   const [step, setStep] = useState<'connect' | 'role' | 'provider-details'>('connect');
+  const [submittingRole, setSubmittingRole] = useState(false);
+  const [restoringSession, setRestoringSession] = useState(false);
   const [providerType, setProviderType] = useState<'doctor' | 'nurse' | 'hospital_admin' | 'insurer'>('doctor');
   const [formData, setFormData] = useState({
     name: '',
@@ -28,26 +30,39 @@ export default function ConnectPage() {
   // Check if user already has a profile
   useEffect(() => {
     const restoreSession = async () => {
-    if (connected && publicKey && profile?.walletAddress === publicKey.toBase58()) {
-      if (!isAuthenticated && !(await signAndVerify())) return;
-      // Returning user - go to dashboard
-      if (profile.role === 'patient') {
-        router.push('/dashboard/patient');
-      } else {
-        router.push('/dashboard/provider');
+      if (!connected || !publicKey) {
+        setRestoringSession(false);
+        return;
       }
-    } else if (connected && publicKey) {
-      // New user - show role selection
+
+      const address = publicKey.toBase58();
+      if (profile?.walletAddress === address && profile.role) {
+        setRestoringSession(true);
+        const tokenMatchesWallet = isAuthenticated && authenticatedWallet === address;
+        if (!tokenMatchesWallet && !(await signAndVerify())) {
+          setRestoringSession(false);
+          return;
+        }
+
+        router.replace(profile.role === 'patient' ? '/dashboard/patient' : '/dashboard/provider');
+        return;
+      }
+
+      setRestoringSession(false);
       setStep('role');
-    }
     };
 
     void restoreSession();
-  }, [connected, publicKey, profile, router, isAuthenticated, signAndVerify]);
+  }, [connected, publicKey, profile, router, isAuthenticated, authenticatedWallet, signAndVerify]);
 
   const handleRoleSelect = async (role: 'patient' | 'provider') => {
+    setError(null);
+    setSubmittingRole(true);
     const authenticated = await signAndVerify();
-    if (!authenticated) return;
+    if (!authenticated) {
+      setSubmittingRole(false);
+      return;
+    }
 
     if (role === 'patient') {
       // Create patient profile immediately
@@ -58,11 +73,12 @@ export default function ConnectPage() {
           verificationStatus: 'none',
           createdAt: new Date().toISOString(),
         });
-        router.push('/dashboard/patient');
+        router.replace('/dashboard/patient');
       }
     } else {
       // Show provider details form
       setStep('provider-details');
+      setSubmittingRole(false);
     }
   };
 
@@ -80,7 +96,7 @@ export default function ConnectPage() {
         verificationStatus: 'pending',
         createdAt: new Date().toISOString(),
       });
-      router.push('/dashboard/provider');
+      router.replace('/dashboard/provider');
     }
   };
 
@@ -118,6 +134,20 @@ export default function ConnectPage() {
           <h1 className="text-3xl font-bold text-gray-900">CypherMed</h1>
           <p className="text-gray-600 mt-2">Your Medical Records, Your Control</p>
         </div>
+
+        {authError && (
+          <div role="alert" className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            <p className="font-semibold">Wallet sign-in didn&apos;t complete</p>
+            <p className="mt-1">{authError}</p>
+            <button onClick={() => setError(null)} className="mt-2 text-xs font-semibold underline">Dismiss</button>
+          </div>
+        )}
+
+        {restoringSession && (
+          <div role="status" className="mb-5 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-center text-sm text-blue-800">
+            Checking your saved workspace and wallet session...
+          </div>
+        )}
 
         {/* Step: Connect Wallet */}
         {step === 'connect' && (
@@ -163,6 +193,7 @@ export default function ConnectPage() {
               {/* Patient Option */}
               <button
                 onClick={() => handleRoleSelect('patient')}
+                disabled={submittingRole || authLoading}
                 className="w-full p-6 rounded-2xl border-2 border-gray-200 hover:border-hospital-blue-400 hover:bg-hospital-blue-50/50 transition-all group text-left"
               >
                 <div className="flex items-center gap-4">
@@ -172,7 +203,7 @@ export default function ConnectPage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800">I&apos;m a Patient</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">{submittingRole ? 'Signing in...' : 'I’m a Patient'}</h3>
                     <p className="text-gray-500 text-sm">Manage your medical records and control access</p>
                   </div>
                 </div>
@@ -181,6 +212,7 @@ export default function ConnectPage() {
               {/* Provider Option */}
               <button
                 onClick={() => handleRoleSelect('provider')}
+                disabled={submittingRole || authLoading}
                 className="w-full p-6 rounded-2xl border-2 border-gray-200 hover:border-hospital-teal-400 hover:bg-hospital-teal-50/50 transition-all group text-left"
               >
                 <div className="flex items-center gap-4">
@@ -190,7 +222,7 @@ export default function ConnectPage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800">I&apos;m a Healthcare Provider</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">{submittingRole ? 'Signing in...' : 'I’m a Healthcare Provider'}</h3>
                     <p className="text-gray-500 text-sm">Doctor, Nurse, Hospital, or Insurer</p>
                   </div>
                 </div>
