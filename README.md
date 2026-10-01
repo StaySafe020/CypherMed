@@ -1,122 +1,57 @@
 # CypherMed
+
 ![CI](https://github.com/StaySafe020/CypherMed/actions/workflows/ci.yml/badge.svg)
 
-Decentralized medical records protocol built on Solana. Patients own their data — hospitals, doctors, and insurers access it only with explicit, auditable consent.
+CypherMed is a Solana-based medical records MVP focused on patient-controlled, auditable access.
 
-For full technical details see [CYPHERMED_DOCS.md](CYPHERMED_DOCS.md).
+## Links
 
----
+- **Live app:** https://app-three-rho-15.vercel.app/connect
+- **API:** https://cyphermed.onrender.com/
+- **API health:** https://cyphermed.onrender.com/health
+- **Repository:** https://github.com/StaySafe020/CypherMed
+- **Technical docs:** [CYPHERMED_DOCS.md](CYPHERMED_DOCS.md)
 
-## Overview
+## Demo workflow
 
-CypherMed combines Solana's immutable ledger with off-chain encrypted storage (PostgreSQL) so that sensitive medical data never touches the blockchain while every access event is permanently audited on-chain.
+1. Connect a Solana wallet as a patient.
+2. Create or view a medical record.
+3. Grant a provider scoped access.
+4. Confirm the provider can read the permitted record.
+5. Review the audit event.
+6. Revoke access and confirm subsequent reads are denied.
 
-- **Patient Sovereignty** — complete control over who accesses medical data
-- **Immutable Audit Trail** — every access attempt recorded on-chain, tamper-proof
-- **Emergency Access** — break-glass protocols with severity levels and permanent audit
-- **Universal Identity** — privacy-preserving IDs, not raw wallet addresses
-- **Full Hospital Operations** — 28 record types, 13 roles, birth-to-death records
+The backend enforces access against the active grant at read time. Records are stored off-chain, while access events are designed for auditability.
 
----
+## Stack
 
-## Tech Stack
+- **Frontend:** Next.js, React, Tailwind CSS, Solana Wallet Adapter
+- **Backend:** Node.js, Express, Prisma, PostgreSQL, Socket.IO
+- **On-chain:** Anchor and Solana
+- **Deployment:** Vercel frontend, Render API, Neon PostgreSQL
 
-| Layer | Technology |
-|---|---|
-| Smart Contract | Anchor Framework (Rust), Solana |
-| RPC | [Helius](https://helius.dev) |
-| Backend | Node.js/Express, PostgreSQL, Prisma ORM |
-| Frontend | Next.js 14, React 18, Solana Wallet Adapter, TailwindCSS |
-| Encryption | AES-256-GCM (off-chain data), PBKDF2 key derivation |
-| Real-time | Socket.IO |
-
-**Program ID (devnet):** `34LxHEYnuRTy2dif922hNttBbrPNQ6pj7pThyCxwxUrL`
-
----
-
-## Quick Start
-
-### Prerequisites
-
-- Rust (latest stable)
-- Solana CLI v1.18+
-- Anchor Framework v0.32+
-- Node.js v18+, Yarn
-- Docker (for backend PostgreSQL)
-
-### Smart Contract
+## Local development
 
 ```bash
-git clone https://github.com/StaySafe020/CypherMed.git
-cd CypherMed
-yarn install
-anchor build
-anchor test
-```
+# Frontend
+cd app
+npm install
+cp .env.example .env.local
+npm run dev
 
-### Backend
-
-```bash
+# Backend
 cd backend
-docker-compose up -d
-echo 'DATABASE_URL="postgresql://postgres:postgres@localhost:5432/cyphermed?schema=public"' > .env
+npm install
+cp .env.example .env
 npx prisma generate
 npx prisma migrate dev
 npm run dev
 ```
 
-### Frontend
+Set `NEXT_PUBLIC_API_URL` in `app/.env.local` to the backend URL. For local development, use `http://localhost:3000`.
 
-```bash
-cd app
-cp .env.local.example .env.local  # add your Helius API key
-npm install
-npm run dev
-```
+## Status
 
-Configure your Helius API key in `app/.env.local`:
-```
-NEXT_PUBLIC_HELIUS_API_KEY=your_helius_api_key_here
-```
+This is an experimental MVP for demonstration and testing. It is not approved for production healthcare use. Do not use real patient data. Review the [security notes](SECURITY.md) and applicable HIPAA, GDPR, NDPR, and other healthcare requirements before deployment.
 
----
-
-## Documentation
-
-| Document | Description |
-|---|---|
-| [CYPHERMED_DOCS.md](CYPHERMED_DOCS.md) | Architecture, project structure, usage examples, testing, security, roadmap |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute, coding standards, PR process |
-| [SECURITY.md](SECURITY.md) | Vulnerability disclosure policy |
-| [backend/API_DOCUMENTATION.md](backend/API_DOCUMENTATION.md) | REST API reference |
-
----
-
-## Contributing
-
-Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR.
-
----
-
-## License
-
-Licensed under the Apache License 2.0 — see [LICENSE](LICENSE).
-
----
-
-## Contact
-
-**Maintainer**: StaySafe020  
-**Repository**: [https://github.com/StaySafe020/CypherMed](https://github.com/StaySafe020/CypherMed)
-
----
-
-## ⚠️ Disclaimer
-
-This is experimental software. 
-CypherMed gives healthcare organizations a cryptographically auditable way to manage patient-authorized access to medical records.
-
----
-
-**Built with ❤️ on Solana**
-
+Licensed under the Apache License 2.0.
