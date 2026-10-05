@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { PublicKey } from "@solana/web3.js";
 import { verifySignature, generateNonce } from "../utils/wallet";
 import prisma from "../prisma";
 
@@ -23,8 +24,10 @@ router.post("/nonce", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "walletAddress is required" });
     }
 
-    // Validate Solana address format (44 characters, base58)
-    if (!/^[1-9A-HJ-NP-Z]{44}$/.test(walletAddress)) {
+    // Decode the key instead of assuming a fixed base58 string length.
+    try {
+      new PublicKey(walletAddress);
+    } catch {
       return res.status(400).json({ error: "Invalid Solana wallet address" });
     }
 
