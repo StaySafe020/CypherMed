@@ -3,7 +3,8 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useAuthStore } from "@/store/authStore";
 import axios from "axios";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "https://cyphermed.onrender.com";
 
 export function useWalletAuth() {
   const wallet = useWallet();
