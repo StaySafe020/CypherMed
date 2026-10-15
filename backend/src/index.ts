@@ -21,6 +21,8 @@ const httpServer = createServer(app);
 // Initialize Socket.IO
 const io = initializeSocketIO(httpServer);
 
+// Behind a reverse proxy (Render: 1), so req.ip is the client's address for the sign-in rate limits
+app.set("trust proxy", Number(process.env.TRUST_PROXY_HOPS) || 0);
 app.use(cors());
 app.use(express.json());
 

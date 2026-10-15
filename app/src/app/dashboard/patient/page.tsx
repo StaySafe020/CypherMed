@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useUserStore } from "@/store/userStore";
+import { useWalletAuth } from "@/hooks/useWalletAuth";
 import {
   getAuditLogs,
   getNotifications,
@@ -78,8 +79,10 @@ function Icon({ name, size = 18 }: { name: string; size?: number }) {
 }
 
 export default function PatientDashboard() {
-  const { connected, publicKey, disconnect } = useWallet();
-  const { profile, clearProfile } = useUserStore();
+  const { connected, publicKey } = useWallet();
+  const { profile } = useUserStore();
+  const { logout } = useWalletAuth();
+  const [logoutError, setLogoutError] = useState<string | null>(null);
   const router = useRouter();
   const walletAddress = publicKey?.toBase58();
   const [records, setRecords] = useState<any[]>([]);
@@ -119,10 +122,14 @@ export default function PatientDashboard() {
   const shortAddress = walletAddress
     ? `${walletAddress.slice(0, 5)}...${walletAddress.slice(-4)}`
     : "";
-  const handleDisconnect = () => {
-    clearProfile();
-    disconnect();
-    router.push("/connect");
+  const handleDisconnect = async () => {
+    setLogoutError(null);
+    const result = await logout();
+    if (!result.ok) {
+      setLogoutError(result.error);
+      return;
+    }
+    router.replace("/connect");
   };
   const activity = auditEvents.slice(0, 3);
   const unread = notifications.filter((item) => !item.read).length;
@@ -208,15 +215,33 @@ export default function PatientDashboard() {
             </Link>
             <button
               onClick={handleDisconnect}
-              className="flex items-center gap-2 rounded-xl border border-[#dfe8e2] bg-white px-3 py-2 text-xs font-semibold text-[#53655c]"
+              aria-label="Disconnect wallet"
+              title="Disconnect wallet"
+              className="group flex items-center gap-2 rounded-xl border border-[#dfe8e2] bg-white px-3 py-2 text-xs font-semibold text-[#53655c] transition-colors duration-200 hover:border-[#efd3c5] hover:text-[#b9592f] focus-visible:border-[#efd3c5] focus-visible:text-[#b9592f]"
             >
-              <span className="h-6 w-6 rounded-full bg-[#cfe7d5] text-center leading-6 text-[#176b52]">
+              <span className="h-6 w-6 rounded-full bg-[#cfe7d5] text-center leading-6 text-[#176b52] transition-colors duration-200 group-hover:bg-[#f8e3d8] group-hover:text-[#b9592f] group-focus-visible:bg-[#f8e3d8] group-focus-visible:text-[#b9592f]">
                 P
               </span>
-              <span className="hidden sm:inline">{shortAddress}</span>
+              {/* The address and the label share one grid cell, so the button keeps its width on hover */}
+              <span className="hidden sm:inline-grid">
+                <span className="col-start-1 row-start-1 transition-opacity duration-200 group-hover:opacity-0 group-focus-visible:opacity-0">
+                  {shortAddress}
+                </span>
+                <span className="col-start-1 row-start-1 text-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+                  Disconnect
+                </span>
+              </span>
             </button>
           </div>
         </header>
+        {logoutError && (
+          <div
+            role="alert"
+            className="mx-auto mt-4 max-w-[1320px] rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 sm:mx-8 lg:mx-12"
+          >
+            {logoutError}
+          </div>
+        )}
         <div className="mx-auto max-w-[1320px] px-5 py-8 sm:px-8 lg:px-12 lg:py-12">
           <section className="animate-reveal mb-9 flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div>

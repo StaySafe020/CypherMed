@@ -12,3 +12,7 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
+      - key: SIWX_ALLOWED_ORIGINS
+        value: https://cyphermed.vercel.app
+      - key: TRUST_PROXY_HOPS
+        value: "1"

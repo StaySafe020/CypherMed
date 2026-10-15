@@ -7,6 +7,22 @@ import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import { useWalletAuth } from "@/hooks/useWalletAuth";
 import { useAuthStore } from "@/store/authStore";
+import { getMyProfile, registerProvider, type ServerProvider } from "@/lib/api";
+
+// The profile kept in the browser for a provider the server has on record
+function profileFromProvider(provider: ServerProvider) {
+  return {
+    walletAddress: provider.wallet,
+    role: provider.role,
+    name: provider.name,
+    email: provider.email ?? undefined,
+    licenseNumber: provider.licenseNumber ?? undefined,
+    specialty: provider.specialty ?? undefined,
+    institution: provider.institution ?? undefined,
+    verificationStatus: provider.verificationStatus,
+    createdAt: provider.createdAt,
+  };
+}
 
 export default function ConnectPage() {
   const { connected, publicKey, disconnect } = useWallet();
@@ -19,6 +35,7 @@ export default function ConnectPage() {
     isLoading: authLoading,
     error: authError,
     setError,
+    setTokens,
   } = useAuthStore();
 
   const [step, setStep] = useState<"connect" | "role" | "provider-details">(
@@ -55,11 +72,35 @@ export default function ConnectPage() {
           return;
         }
 
-        router.replace(
-          profile.role === "patient"
-            ? "/dashboard/patient"
-            : "/dashboard/provider"
-        );
+        // The server decides the role; the stored profile only remembers the last choice
+        try {
+          const me = await getMyProfile();
+          if (me.provider) {
+            setProfile(profileFromProvider(me.provider));
+            router.replace("/dashboard/provider");
+            return;
+          }
+        } catch {
+          setRestoringSession(false);
+          setError("Could not load your profile. Please try again.");
+          return;
+        }
+        if (profile.role === "patient") {
+          router.replace("/dashboard/patient");
+          return;
+        }
+
+        // A provider profile kept only in this browser: register it on the server first
+        setProviderType(profile.role);
+        setFormData({
+          name: profile.name ?? "",
+          email: profile.email ?? "",
+          licenseNumber: profile.licenseNumber ?? "",
+          specialty: profile.specialty ?? "",
+          institution: profile.institution ?? "",
+        });
+        setRestoringSession(false);
+        setStep("provider-details");
         return;
       }
 
@@ -81,10 +122,26 @@ export default function ConnectPage() {
   const handleRoleSelect = async (role: "patient" | "provider") => {
     setError(null);
     setSubmittingRole(true);
-    const authenticated = await signAndVerify();
-    if (!authenticated) {
+    const serverRole = await signAndVerify();
+    if (!serverRole) {
       setSubmittingRole(false);
       return;
+    }
+
+    // A wallet registered as a provider opens the provider workspace, whichever button was clicked
+    if (serverRole !== "patient") {
+      try {
+        const me = await getMyProfile();
+        if (me.provider) {
+          setProfile(profileFromProvider(me.provider));
+          router.replace("/dashboard/provider");
+          return;
+        }
+      } catch {
+        setError("Could not load your profile. Please try again.");
+        setSubmittingRole(false);
+        return;
+      }
     }
 
     if (role === "patient") {
@@ -105,21 +162,22 @@ export default function ConnectPage() {
     }
   };
 
-  const handleProviderSubmit = (e: React.FormEvent) => {
+  // The server stores the registration and returns tokens with the provider role; the browser only caches it
+  const handleProviderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (publicKey) {
-      setProfile({
-        walletAddress: publicKey.toBase58(),
+    setError(null);
+    setSubmittingRole(true);
+    try {
+      const { accessToken, refreshToken, provider } = await registerProvider({
         role: providerType,
-        name: formData.name,
-        email: formData.email,
-        licenseNumber: formData.licenseNumber,
-        specialty: formData.specialty,
-        institution: formData.institution,
-        verificationStatus: "pending",
-        createdAt: new Date().toISOString(),
+        ...formData,
       });
+      setTokens(accessToken, refreshToken);
+      setProfile(profileFromProvider(provider));
       router.replace("/dashboard/provider");
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Provider registration failed");
+      setSubmittingRole(false);
     }
   };
 
@@ -480,9 +538,10 @@ export default function ConnectPage() {
 
               <button
                 type="submit"
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-hospital-teal-500 to-hospital-blue-500 text-white font-semibold hover:opacity-90 transition-all mt-6"
+                disabled={submittingRole}
+                className="w-full py-4 rounded-xl bg-gradient-to-r from-hospital-teal-500 to-hospital-blue-500 text-white font-semibold hover:opacity-90 transition-all mt-6 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Submit for Verification
+                {submittingRole ? "Submitting..." : "Submit for Verification"}
               </button>
 
               <p className="text-xs text-gray-500 text-center mt-4">

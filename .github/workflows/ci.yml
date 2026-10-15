@@ -126,6 +126,13 @@ jobs:
           DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/cyphermed?schema=public"
         run: npx prisma migrate deploy
 
+      - name: Run backend tests
+        working-directory: backend
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/cyphermed?schema=public"
+          JWT_SECRET: "ci-test-jwt-secret-with-at-least-32-characters"
+        run: npm test
+
       - name: Build backend
         working-directory: backend
         run: npx tsc --noEmit

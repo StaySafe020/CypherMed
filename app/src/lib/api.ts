@@ -28,6 +28,46 @@ api.interceptors.response.use(
 
 // ─── Typed API helpers ──────────────────────────────────────────────────────
 
+/** A provider registration as the server stores it; only the server sets verificationStatus. */
+export interface ServerProvider {
+  wallet: string;
+  role: "doctor" | "nurse" | "hospital_admin" | "insurer";
+  name: string;
+  email: string | null;
+  licenseNumber: string | null;
+  specialty: string | null;
+  institution: string | null;
+  verificationStatus: "none" | "pending" | "verified" | "rejected";
+  createdAt: string;
+}
+
+/** The signed-in wallet and the role the server has on record for it. */
+export const getMyProfile = async () =>
+  (
+    await api.get<{
+      wallet: string;
+      role: string;
+      provider: ServerProvider | null;
+    }>("/api/auth/me")
+  ).data;
+
+/** Registers the signed-in wallet as a provider; returns tokens that carry the new role. */
+export const registerProvider = async (data: {
+  role: ServerProvider["role"];
+  name: string;
+  email?: string;
+  licenseNumber?: string;
+  specialty?: string;
+  institution?: string;
+}) =>
+  (
+    await api.post<{
+      accessToken: string;
+      refreshToken: string;
+      provider: ServerProvider;
+    }>("/api/auth/provider", data)
+  ).data;
+
 export interface MedicalRecord {
   id: string;
   recordType: string;

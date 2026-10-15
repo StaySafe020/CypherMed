@@ -124,3 +124,42 @@ model BirthRegistration {
   registeredAt      DateTime @default(now())
   metadata          Json?    // Additional birth details
 }
+
+// Sign-in nonces issued by POST /api/auth/nonce. A signed message uses one once: verification deletes it.
+model AuthNonce {
+  nonce     String   @id
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+// Wallet sessions created at sign-in. The JWTs carry the id (sid); logout sets revokedAt.
+model AuthSession {
+  id        String    @id
+  wallet    String
+  chainId   String
+  domain    String
+  nonce     String
+  issuedAt  DateTime
+  subjectId String?
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([wallet])
+}
+
+// Healthcare providers, registered by their own signed-in wallet (POST /api/auth/provider). The role in the JWTs and
+// in access requests comes from here, never from the browser; only the server changes verificationStatus.
+model Provider {
+  id                 String   @id @default(uuid())
+  wallet             String   @unique
+  role               String   // doctor, nurse, hospital_admin, insurer
+  name               String
+  email              String?
+  licenseNumber      String?
+  specialty          String?
+  institution        String?
+  verificationStatus String   @default("pending")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}

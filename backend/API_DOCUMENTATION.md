@@ -1,5 +1,67 @@
 # CypherMed API Endpoints
 
+## Auth API (SIWX)
+
+Wallet sign-in with SIWX (Sign In With Solana, CAIP-122). Protected routes take `Authorization: Bearer <accessToken>`.
+
+### Get a Nonce
+```http
+POST /api/auth/nonce
+```
+Returns `{ "nonce": "..." }`. The nonce works once and expires after 5 minutes. `/nonce` and `/verify-signature` each accept `AUTH_RATE_LIMIT_PER_MINUTE` requests (default 10) per client IP and minute, then answer `429` with `Retry-After`.
+
+### Verify a Signed Message
+```http
+POST /api/auth/verify-signature
+Content-Type: application/json
+
+{
+  "message": "localhost:3001 wants you to sign in with your Solana account: ...",
+  "signature": "<base58 signature>"
+}
+```
+The message must use a nonce from `/nonce`, one of the `SIWX_ALLOWED_ORIGINS` as its domain and URI, Solana devnet, and an expiration time within 7 days. Returns `{ accessToken, refreshToken, user }` with `user.role` from the server (`patient`, or the wallet's provider role); both tokens are bound to a server session. Errors: `400` (missing fields), `401` (wrong domain or network, invalid signature, nonce expired or already used).
+
+### Refresh the Access Token
+```http
+POST /api/auth/refresh
+Content-Type: application/json
+
+{ "refreshToken": "..." }
+```
+Returns `{ accessToken }` while the session is active, with the role read again from the database; `401` after logout or expiry.
+
+### Get the Signed-In Profile
+```http
+GET /api/auth/me
+Authorization: Bearer <accessToken>
+```
+Returns `{ wallet, role, provider }`: the role the server has on record (`patient` unless the wallet registered as a provider) and the provider registration, or `null`.
+
+### Register as a Provider
+```http
+POST /api/auth/provider
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "role": "doctor|nurse|hospital_admin|insurer",
+  "name": "Dr. Jane Doe",
+  "email": "jane@example.com",
+  "licenseNumber": "MD-12345",
+  "specialty": "Cardiology",
+  "institution": "City Hospital"
+}
+```
+Registers the signed-in wallet (taken from the access token) as a provider with `verificationStatus: "pending"` (a provider can request patient access only once it is `"verified"`), and returns `{ accessToken, refreshToken, provider }` with the provider role. A wallet or verification status in the body is ignored. Errors: `400` (unknown role, missing name), `409` (the wallet is already registered).
+
+### Log Out
+```http
+POST /api/auth/logout
+Authorization: Bearer <accessToken>
+```
+Revokes the session: its access and refresh tokens stop working at once. If the app cannot reach this endpoint, it keeps the user signed in and shows the error instead of clearing the session locally.
+
 ## Patients API
 
 ### List All Patients
@@ -385,12 +447,11 @@ Content-Type: application/json
 
 {
   "patientId": "uuid",
-  "requester": "wallet_address",
-  "role": "Doctor|Hospital|Insurer|EmergencyResponder",
   "reason": "Need access for treatment",
   "expiresAt": "2026-01-15T00:00:00Z" (optional)
 }
 ```
+The requester is the signed-in wallet and its role comes from its provider registration (`POST /api/auth/provider`); a `requester` or `role` in the body is ignored. Wallets that are not registered providers get `403`, and so do providers whose `verificationStatus` is not `"verified"` (pending or rejected registrations).
 
 ### List Access Requests
 ```bash

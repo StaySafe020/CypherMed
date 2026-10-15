@@ -6,6 +6,7 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "test": "node --require ts-node/register/transpile-only --test test/auth.test.ts",
     "test-websocket": "node scripts/test-websocket.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev",
@@ -13,10 +14,16 @@
   },
   "dependencies": {
     "@prisma/client": "^4.15.0",
+    "@solana/kit": "^8.4.0",
     "@solana/web3.js": "^1.98.4",
+    "@tuwaio/orbit-core": "^0.5.1",
+    "@tuwaio/siwx-core": "^0.7.0",
+    "@tuwaio/siwx-server": "^0.7.1",
+    "@tuwaio/siwx-solana": "^0.6.0",
     "@types/bcrypt": "^6.0.0",
     "@types/multer": "^2.0.0",
     "@types/socket.io": "^3.0.1",
+    "@wallet-standard/base": "^1.1.1",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
@@ -32,6 +39,7 @@
     "@types/cors": "^2.8.19",
     "@types/jsonwebtoken": "^9.0.10",
     "prisma": "^4.15.0",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.1.6"
   }
